@@ -1,0 +1,25 @@
+p {
+	font-family: "Calibri";
+	margin-left: 20px;
+}
+
+a {
+	font-family: "Calibri";
+	font-size: larger;
+	border: 3px solid #98bf21;
+}
+
+.intro {
+	color: rgb(0, 100, 200);
+	font-family: "Calibri";
+}
+
+.organization {
+	font-weight: bold;
+	color: rgb(0,100, 150);
+}
+
+.position {
+	color: rgb(0, 150, 100);
+}
+*/
