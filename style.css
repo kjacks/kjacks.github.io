@@ -1,17 +1,26 @@
-p {
-	font-family: "Calibri";
-	margin-left: 20px;
+html {
+	background:url(background1.jpg);
+	background-size: cover;
+
 }
 
-a {
-	font-family: "Calibri";
-	font-size: larger;
-	border: 3px solid #98bf21;
+body {
+	text-align: center;
+	font-family: "Calibri";	
 }
+
+img{
+	width:500px;
+	height:500px;
+	border: 2px solid white;
+	border-radius: 5px;
+}
+
 
 .intro {
 	color: rgb(0, 100, 200);
-	font-family: "Calibri";
+	font-weight: bold;
+	font-size: 40px;
 }
 
 .organization {
