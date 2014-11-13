@@ -1,33 +1,65 @@
 html {
-	background:url(background1.jpg);
+	background:url(images/background1.jpg);
 	background-size: cover;
-
 }
 
 body {
-	text-align: center;
-	font-family: "Calibri";	
+	font-family: "Avenir";	
+	color: rgb(0, 100, 200);
+	font-size: 20px;
 }
 
-img{
-	width:500px;
-	height:500px;
+.kirk {
+	text-align: center;
+	margin-top:20%;
+	font-size: 75px;
+}
+
+.home {
+	position:fixed;
+	text-align: left;
+	margin-top:0%;
+	font-size: 50px;
+}
+
+.subheader {
+	margin-left:auto;
+	margin-right:auto;
+	text-align: center;
+}
+
+.contactinfo {
+	margin-top: 20px;
+	margin-left:auto;
+	margin-right:auto;
+	text-align: center;
+}
+
+.work, .contact {
+	margin-left:30px;
+}
+
+.resumedoc {
+	text-align:center;
+	margin-left:auto;
+	margin-right:auto;
+	width:50%;
+}
+
+.resumeimg {
+	background-color: white;
 	border: 2px solid white;
 	border-radius: 5px;
 }
 
+a:link{
+	text-decoration: none;
+}
 
-.intro {
+a:hover {
+
+}
+
+a:visited {
 	color: rgb(0, 100, 200);
-	font-weight: bold;
-	font-size: 40px;
-}
-
-.organization {
-	font-weight: bold;
-	color: rgb(0,100, 150);
-}
-
-.position {
-	color: rgb(0, 150, 100);
 }

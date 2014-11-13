@@ -9,7 +9,10 @@ class Button {
    String curr_text;
    String T1, T2;
    
-   Button(float screen_h, float screen_w) {
+   Button(float screen_h, float screen_w, String file) {
+     String[] lines = loadStrings(file);
+      String message1 = lines[0];
+      String message2 = lines[1];
      isect = false;
      h1 = screen_h/2;
      h2 = screen_h/3;
@@ -26,8 +29,8 @@ class Button {
      C1 = color(random(127, 255), random(127, 255), random(127, 255));
      C2 = color(random(127, 255), random(127, 255), random(127, 255));
      curr_color = C1;
-     T1 = "Big Button";
-     T2 = "Small Button";
+     T1 = message1;
+     T2 = message2;
      curr_text = T1;
    }
    
