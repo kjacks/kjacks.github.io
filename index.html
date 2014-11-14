@@ -4,7 +4,18 @@
 
 	<head>
 		<title> Kirk Jackson </title>
-		<link rel="stylesheet" type="text/css" href="style.css" >		
+		<link rel="stylesheet" type="text/css" href="style.css" >
+		<script type "text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>	
+
+		<script type "text/javascript"> 
+			$(document).ready(function(){
+				$(".subheader").hide();
+				$(".kirk").hide().fadeIn(400, "linear", function(){
+					$(".subheader").fadeIn(400, "linear");
+				});
+			});
+		</script>
+
 	</head>
 
 	<body>

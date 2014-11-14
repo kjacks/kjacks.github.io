@@ -41,15 +41,18 @@ body {
 
 .resumedoc {
 	text-align:center;
-	margin-left:auto;
+	margin-left:225px;
 	margin-right:auto;
-	width:50%;
+	width:65%;
 }
 
 .resumeimg {
 	background-color: white;
 	border: 2px solid white;
 	border-radius: 5px;
+	margin-top: 70px;
+	width:100%;
+
 }
 
 a:link{
