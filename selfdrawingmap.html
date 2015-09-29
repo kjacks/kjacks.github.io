@@ -9,11 +9,15 @@
         stroke-dasharray="100, 100";
       }
     </style>
+    <script type "text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> 
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://d3js.org/topojson.v0.min.js"></script>
   </head>
   <body>
+    <div class = "begin" style="font-family:Calibri" > Click anywhere to begin </div>
+    
     <script type="text/javascript">
+      
       var width = 900;
       var height = 600;
 
@@ -104,26 +108,29 @@
 
       function transition() {
         sortPaths();
-        console.log("here!");
+        $(".begin").hide();
+        var randomColor = Math.random()*255;
+        console.log(randomColor);
         outlines
           .transition()
           .delay(function(d, i) { return i*75; })
           .duration(2000)
           //.attr("opacity", function(d, i) { return (190-i)/100 })
-          .attr("stroke-dasharray", "1000 0");
-          /*
+          .attr("stroke-dasharray", "1000 0")
+          
           .each("end", function(d, i) {
               var tofill = d3.select(this);
-              console.log(i);
               tofill = tofill.transition()
-                .duration(5000)
-                .attr("fill", "rgb(150, 125, 255)")
-                .attr("opacity", (180-i)/100)
+                .duration(3000)
+                .attr("fill", "rgb(0, 125, 255)")
+                .attr("fill-opacity", .35)
+                .attr("stroke-dasharray", "0 1000")
 
           });
-*/
+        //$(".end").show();
       }
 
     </script>
+
   </body>
 </html>
