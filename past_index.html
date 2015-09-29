@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+
+<html>
+
+	<head>
+		<title> Kirk Jackson </title>
+		<link rel="stylesheet" type="text/css" href="style.css" >
+		<script type "text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>	
+
+		<script type "text/javascript"> 
+			$(document).ready(function(){
+				$(".subheader").hide();
+				$(".kirk").hide().fadeIn(400, "linear", function(){
+					$(".subheader").fadeIn(400, "linear");
+				});
+			});
+		</script>
+
+	</head>
+
+	<body>
+			<header class= "kirk">Kirk Jackson</header>
+			<div class= "subheader"> 
+				<a class= "resume" href= "resume.html">Resume</a>
+
+				<a class= "work" href= "work.html">Work</a>
+
+				<a class= "contact" href= "contact.html">Contact</a>
+			</div>
+	</body>
+
+</html>

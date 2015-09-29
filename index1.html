@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html>
+
+	<head>
+		<title> Kirk Jackson </title>
+		<link rel="stylesheet" type="text/css" href="style.css" >
+		<script type "text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>	
+		<script src="http://d3js.org/d3.v3.min.js"></script>
+
+		<script type "text/javascript"> 
+			$(document).ready(function(){
+				var svg;
+				var h = $(document).height();
+				var w = $(document).width();
+
+				d3.xml("lines.svg", "image/svg+xml", function(xml) {
+	            	console.log(xml.documentElement);
+	            	//elem = xml.documentElement;
+	            
+
+	            //$(".background").appendChild(elem);
+
+	            svg = d3.select("svg")
+	              //.attr("height", h)
+	              //.attr("width", w)
+	              .attr("viewBox", "0 0 " + h + " " + w)
+	              .attr("position", "absolute")
+	              .attr("z-index", "-1")
+	              //.attr("transform-origin", "-50% -50%")
+	              //.attr("-webkit-transform-origin", "-50% -50% 0px") 
+	              .attr("onclick", "transition()");
+
+	            outlines = svg.selectAll("path")
+	            	.attr("stroke-width", "1")
+	                .attr("stroke-dasharray", "1000 0");
+
+	            });
+
+	            function transition() {
+			        console.log("here!");
+			        //sortPaths();
+			        svg.selectAll("path")
+			          .transition()
+			          .delay(function(d, i) { return i*5; })
+			          .duration(10)
+			          .attr("stroke-dasharray", "0 1000");
+			    }
+					$(".subheader").hide();
+					$(".kirk").hide().fadeIn(400, "linear", function(){
+						$(".subheader").fadeIn(400, "linear");
+					});
+				});
+		</script>
+
+	</head>
+
+	<body>
+			<svg class= "background"> 
+
+			</svg>
+				<header class= "kirk">Kirk Jackson</header>
+				<div class= "subheader"> 
+					<a class= "resume" href= "resume.html">Resume</a>
+
+					<a class= "work" href= "work.html">Work</a>
+
+					<a class= "contact" href= "contact.html">Contact</a>
+				</div>
+			
+	</body>
+
+</html>

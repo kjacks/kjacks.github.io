@@ -5,10 +5,49 @@
 	<head>
 		<title> Contact Kirk </title>
 		<link rel="stylesheet" type="text/css" href="work.css" >	
-		<link rel="stylesheet" type="text/css" href="style.css" >			
+		<link rel="stylesheet" type="text/css" href="style.css" >	
+		<script type "text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>	
+		<script src="http://d3js.org/d3.v3.min.js"></script>		
 	</head>
 
 	<body>
+		<script type "text/javascript"> 
+			var svg;
+			$(document).ready(set_background);
+
+			var h = $(document).height();
+			console.log(h);
+			var w = $(document).width();
+
+			function set_background() {
+				d3.xml("lines.svg", "image/svg+xml", function(xml) {
+		            	$(".background").append(xml.documentElement);
+
+		            svg = d3.select("svg")
+		              .attr("viewBox", "0 0 " + h + " " + w);
+
+		            outlines = svg.selectAll("path")
+		            	.attr("stroke-width", ".3")
+		                .attr("stroke-dasharray", "0 1000");
+
+		            transition();
+		        });
+
+
+			}
+		
+
+	            function transition() {
+			        console.log("here!");
+			        //sortPaths();
+			        svg.selectAll("path")
+			          .transition()
+			          .delay(function(d, i) { return i;})
+			          .duration(.5)
+			          .attr("stroke-dasharray", "1000 0");				
+			    }
+		</script>
+		<div class= "background"> </div>
 		<a class= "home" href= "index.html"> Kirk Jackson </a>
 
 		<div class= "contactinfo">

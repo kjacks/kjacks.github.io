@@ -1,6 +1,14 @@
 html {
-	background:url(images/background1.jpg);
-	background-size: cover;
+	
+}
+
+svg {
+	position:absolute;
+	z-index: -1;
+}
+
+path {
+	stroke-width: .3;
 }
 
 body {
@@ -9,9 +17,13 @@ body {
 	font-size: 20px;
 }
 
+.foreground {
+	padding-top: 20%;
+    margin: auto;
+    text-align: center;
+}
+
 .kirk {
-	text-align: center;
-	margin-top:20%;
 	font-size: 75px;
 }
 
@@ -23,13 +35,12 @@ body {
 }
 
 .subheader {
-	margin-left:auto;
-	margin-right:auto;
-	text-align: center;
+	
+
 }
 
 .contactinfo {
-	margin-top: 20px;
+	padding-top: 20%;
 	margin-left:auto;
 	margin-right:auto;
 	text-align: center;
