@@ -21,6 +21,7 @@
       var in_transition = 1;
       var width = 900;
       var height = 600;
+      var cur_mouse = [0,0];
 
       var projection = d3.geo.mercator()
         .center([0, 5])
@@ -29,8 +30,13 @@
       
       var svg = d3.select("body").append("svg")
           .attr("width", width)
-          .attr("height", height)
-          .attr("onclick", "transition()");
+          .attr("height", height);
+
+      svg.on("click", function() {
+        cur_mouse = d3.mouse(this);
+        trans();
+      });
+        
 
       var path = d3.geo.path()
           .projection(projection);
@@ -60,22 +66,17 @@
             outlines.on("mouseover", function(d, i) {
               if(in_transition == 0) {
                 d3.select(this).transition().duration(300)
-                  .style("fill", "rgb(100, 0, 0)");
+                  .attr("fill", "rgb(100, 0, 0)");
               }
             })
             outlines.on("mouseout", function(d, i) {
               if(in_transition == 0) {
                 d3.select(this).transition().duration(300)
-                  .style("fill", "rgb(0" + "," + randomColor + ",255)")
+                  .attr("fill", "rgb(0" + "," + randomColor + ",255)")
                   .attr("stroke-dasharray", "0 1000");
               }
             }) 
-            if (in_transition == 0) {
-              d3.select(this).on("click", function(d, i) {
-                  outlines
-                        .style("fill", "rgb(0" + "," + randomColor + ",255)");
-                  })
-            }
+            
       });
       
 
@@ -106,8 +107,13 @@
       function getDistance(compare_pt)
       {
           var point1 = {x:0, y:0};
-          point1.x = event.clientX;     // Get the horizontal coordinate
-          point1.y = event.clientY;     // Get the vertical coordinate
+          //var cur_pos = [0,0];
+          //cur_pos = d3.mouse(this); 
+          point1.x = cur_mouse[0];    // Get the horizontal coordinate
+          point1.y = cur_mouse[1];     // Get the vertical coordinate
+
+          //point1.x = event.clientX;     // Get the horizontal coordinate
+          //point1.y = event.clientY;     // Get the vertical coordinate
           var point2 = compare_pt.getPointAtLength(0);
 
             var xs = 0;
@@ -125,10 +131,14 @@
           //return (p.getAttribute("d")[1] + p.getAttribute("d")[2] + p.getAttribute("d")[3]);
           //+ +(p.getAttribute("d")[19] + p.getAttribute("d")[20] + p.getAttribute("d")[21]));
       
+    
 
-
-      function transition() {
+      function trans() {
         in_transition = 1;
+        //if (at_start != 1) {
+        //  outlines.attr("fill", "rgb(0" + "," + randomColor + ",255)");
+        //}
+        //var cur_pos = d3.mouse(this);
         sortPaths();
         $(".begin").hide();
         //randomColor = Math.random()*255;
@@ -149,14 +159,15 @@
                 .attr("stroke-dasharray", "0 1000");
                 if(i == 176) {
                   in_transition = 0;
-                  //allow_hover();
                 }
-          });
-
+          });   
           
-          
-      }
-
+        }
+        /*outlines.on("click", function(d, i) {
+                  console.log("hello");
+                  d3.select(this)
+                        .attr("fill", "rgb(0" + "," + randomColor + ",255)");
+                  });*/
       //function allow_hover() {
         console.log(in_transition);
         
