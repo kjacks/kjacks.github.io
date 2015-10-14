@@ -21,7 +21,7 @@
 
 path.link {
   fill: none;
-  stroke: #ccc;
+  stroke: #edecea;
   stroke-width: 1.5px;
 }
 
@@ -79,10 +79,38 @@ d3.json("SFPSDparsed.json", function(json) {
 });
 
 function update(source) {
+  console.log("in update");
+  //calculates level with max number of nodes open, stores currently open nodes for each level in levelWidth array
+  var levelWidth = [1];
+  var childCount = function(level, n) {
+    if (n.children && n.children.length > 0) {
+      if (levelWidth.length <= level + 1) levelWidth.push(0);
+
+      levelWidth[level + 1] += n.children.length;
+      n.children.forEach(function(d) {
+          childCount(level + 1, d);
+      });
+    }
+  };
+  childCount(0, root);
+  console.log(levelWidth);
+  //resizes tree based on level with most nodes open, only resizes if there is a level with greater than 50, otherwise sets to default height
+  if(d3.max(levelWidth) >= 50) {
+    var newHeight = d3.max(levelWidth) * 15; // 15 pixels per line  
+    console.log(newHeight);
+    tree.size([newHeight, w]);
+    d3.select("svg").attr("height", newHeight + m[0]);
+  } else {
+    tree.size([h, w]);
+    d3.select("svg").attr("height", h + m[0] + m[2]);
+  }
+
   var duration = d3.event && d3.event.altKey ? 5000 : 500;
 
   // Compute the new tree layout.
   var nodes = tree.nodes(root).reverse();
+
+  //d3.select("svg").attr
 
   // Normalize for fixed-depth.
   nodes.forEach(function(d) { d.y = d.depth * 180; });
@@ -168,6 +196,46 @@ function update(source) {
   });
 }
 
+/*
+function arrangeLabels(node) {
+  var move = 1;
+  while(move > 0) {
+    move = 0;
+    node.selectAll("text")
+       .each(function() {
+         var that = this,
+             a = this.getBoundingClientRect();
+             console.log(a);
+         /*node.selectAll("text")
+            .each(function(f) {
+              if(this != that) {
+                var b = this.getBoundingClientRect();
+                console.log(a);
+                if((Math.abs(a.left - b.left) * 2 < (a.width + b.width)) &&
+                   (Math.abs(a.top - b.top) * 2 < (a.height + b.height))) {
+                    console.log("overlap" + d + " " + f);
+                  // overlap, move labels
+                  //var dx = 
+                  //(Math.max(0, a.right - b.left) +
+                  //         Math.min(0, a.left - b.right)) * 0.01,
+                  var dy = (Math.max(0, a.bottom - b.top) +
+                           Math.min(0, a.top - b.bottom)) * 0.02,
+                      tt = d3.transform(d3.select(this).attr("transform")),
+                      to = d3.transform(d3.select(that).attr("transform"));
+                  move +=  Math.abs(dy);
+                
+                  to.translate = [ to.translate[0], to.translate[1] + dy ];
+                  tt.translate = [ tt.translate[0], tt.translate[1] - dy ];
+                  d3.select(this).attr("transform", "translate(" + tt.translate + ")");
+                  d3.select(that).attr("transform", "translate(" + to.translate + ")");
+                  a = this.getBoundingClientRect();
+                }
+              }
+            });
+       });
+  }
+}
+*/
 // Toggle children.
 function toggle(d) {
   if (d.children) {
