@@ -36,6 +36,10 @@ body {
   text-align: right;
 }
 
+#search {
+  font-size: 10px;
+}
+
 rect {
   fill: none;
   pointer-events: all;
@@ -69,6 +73,19 @@ line {
 
 .class, .special {
   color: #1181B8;
+}
+
+text.long {
+    width: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.marquee {
+  width: 10px;
+  overflow: hidden;
+  background: #ccc;
 }
 
 a:link, a:visited {
