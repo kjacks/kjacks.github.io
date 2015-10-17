@@ -124,8 +124,9 @@ function update(source) {
         } else {
           d3.select(this).select("text").attr("font-weight", "normal");
         }
-        toggle(d); 
-        update(d); 
+        d.children || d._children ? toggle(d) : openMap(d); 
+        update(d);
+        
       })
       .on("mouseover", function(d) { 
         d3.select(this).attr("fill", "orange");
@@ -143,15 +144,13 @@ function update(source) {
             .style("fill", "white")
             .moveToBack();
         }
-        //t.text(function(d) {return d.name;});
-        
       })
       .on("mouseout", function(d) {
         d3.select("rect").remove();  
         d3.select(this).attr("fill", "black");
         d3.select(this).select("text").text(function(d) 
           {return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
-      });;
+      });
 
   nodeEnter.append("svg:circle")
       .attr("r", 1e-6)
@@ -176,7 +175,7 @@ function update(source) {
                     .range([2, 8]);
 
   nodeUpdate.select("circle")
-      .attr("r", function(d) {console.log(d.name + " " + numDescend(d)); return radiusScale(d.descend);})
+      .attr("r", function(d) {return radiusScale(d.descend);})
       .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
   nodeUpdate.select("text")
@@ -391,7 +390,10 @@ function startSearch() {
   }
 }
 
-
+function openMap(fac) {
+  console.log("opening map");
+  window.open("http://maps.google.com?q=" + fac.name);
+}
 /*
 $(".long").mouseover(function() {
     console.log("scrolling");
