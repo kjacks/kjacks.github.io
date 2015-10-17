@@ -6,12 +6,12 @@ body {
   font-family: "Helvetica Neue", Helvetica;
 }
 
-#chart, #header, #footer {
+#chart, #header, #footer, #title {
   position: absolute;
   top: 0;
 }
 
-#header, #footer {
+#header, #footer, #title {
   z-index: 1;
   display: block;
   font-size: 36px;
@@ -19,7 +19,7 @@ body {
   text-shadow: 0 1px 0 #fff;
 }
 
-#header.inverted, #footer.inverted {
+#header.inverted, #footer.inverted, #title.inverted {
   color: #fff;
   text-shadow: 0 1px 4px #000;
 }
@@ -30,7 +30,7 @@ body {
   width: 1000px;
 }
 
-#footer {
+#footer, #title {
   top: 10px;
   left: 10px;
   text-align: right;
