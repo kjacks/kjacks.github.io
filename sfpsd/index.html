@@ -343,7 +343,7 @@ function findFacility(facility, node) {
     ch = node.children;
   }
     for (var i = 0; i < count; i++) {
-      if (ch[i].name == facility) {
+      if (ch[i].name.toLowerCase() == facility) {
         console.log("found!");
         foundCoord.push(i);
         found = true;
@@ -378,12 +378,12 @@ function startSearch() {
   foundCoord = [];
   found = false;
   console.log("starting search");
-  var toFind = document.getElementById('inputFac').value;
+  var toFind = (document.getElementById('inputFac').value).toLowerCase();
   console.log(toFind);
   findFacility(toFind, root);
   console.log("foundCoord: " + foundCoord);
   if (foundCoord.length < 1) {
-    console.log("not found");
+    alert(toFind + " not found");
   } else {
     console.log("opening tree");
     openTree(foundCoord);
