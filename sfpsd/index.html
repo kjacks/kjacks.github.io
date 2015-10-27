@@ -55,7 +55,9 @@ var m = [40, 120, 20, 85],
 
 //maximum depth of the tree, used to determine if node is leaf, FUTURE:should use a function to set
 var maxDepth = 4
-  labelCutoff = 35;
+  labelCutoff = 35
+  selectColor = "#f7b425"
+  hoverColor = "#89aad3";
 
 var tree = d3.layout.tree()
     .size([h, w]);
@@ -120,16 +122,16 @@ function update(source) {
       .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
       .on("click", function(d) {
         if (d.children == null) {
-          d3.select(this).select("text").attr("font-weight", "bold");
+          d3.select(this).select("text").attr("font-weight", "bold").attr("fill", selectColor);
         } else {
-          d3.select(this).select("text").attr("font-weight", "normal");
+          d3.select(this).select("text").attr("font-weight", "normal").attr("fill", "black");
         }
         d.children || d._children ? toggle(d) : openMap(d); 
         update(d);
         
       })
       .on("mouseover", function(d) { 
-        d3.select(this).attr("fill", "orange");
+        d3.select(this).select("text").attr("fill", function(d) {return d.children ?  selectColor : hoverColor;});
         d3.select(this).select("text").text(function(d) {return d.name;});
         if (d.name.length > labelCutoff) {
           var xpadding = 4
@@ -147,7 +149,7 @@ function update(source) {
       })
       .on("mouseout", function(d) {
         d3.select("rect").remove();  
-        d3.select(this).attr("fill", "black");
+        d3.select(this).select("text").attr("fill", function(d) {return d.children ? selectColor : "black";});
         d3.select(this).select("text").text(function(d) 
           {return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
       });
@@ -161,6 +163,7 @@ function update(source) {
       .attr("dy", ".35em")
       .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
       .attr("font-weight", function(d) { return d.children ? "bold" : "normal";})
+      .attr("fill", function(d) { return d.children ? selectColor : "black";})
       .text(function(d) {
         return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
       .style("fill-opacity", 1e-6);
