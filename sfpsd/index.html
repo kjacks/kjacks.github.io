@@ -3,8 +3,10 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
     <link type="text/css" rel="stylesheet" href="style.css"/>
+    <link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <script type="text/javascript" src="d3/d3.js"></script>
     <script type="text/javascript" src="d3/d3.layout.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <style type="text/css">
 
 
@@ -25,19 +27,80 @@ path.link {
   stroke-width: 1.5px;
 }
 
+.navbar {
+  font-size: 12px;
+  background-color:white;
+  border-color: white;
+}
+
+
+.navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>.active>a:focus, .navbar-default .navbar-nav>.active>a:hover {
+    background-color:white;
+}
+
+.nav>li>a {
+  padding-left: 7px;
+  padding-right: 7px;
+}
+
+.navbar-text {
+  font-size: 31px;
+  margin-bottom: 0px;
+  margin-top: 0px;
+  font-weight: 300;
+  text-shadow: 0 1px 0 #fff;
+}
+
+.boro {
+  stroke: #777;
+}
+
+.active {
+  stroke: steelblue;
+  font-weight: bold;
+}
+
     </style>
   </head>
   <body>
     <div id="body">
-      <div id="title">
-        New York City Facilities
-        <form id="search"> Search for a Facility or Category 
-          <input type="text" id="inputFac">
+      <nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <span class="navbar-text" >New York City Facilities</span>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li><a class="boro active" onclick='javascript:toggleMN()'>Manhattan</a></li>
+        <li><a class="boro active" onclick='javascript:toggleBK()'>Brooklyn</a></li>
+        <li><a class="boro active" onclick='javascript:toggleBX()'>Bronx</a></li>
+        <li><a class="boro active" onclick='javascript:toggleQN()'>Queens</a></li>
+        <li><a class="boro active" onclick='javascript:toggleSI()'>Staten Island</a></li>
+      </ul>
+      <form id="search" > 
+          <input type="text" id="inputFac" placeholder="Search for a Facility or Category">
           <input type="button" value="Search" onClick='javascript:startSearch()'>
-        </form>
-      </div>
+      </form>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+      
     </div>
     <script type="text/javascript">
+
+    $('.boro').click(function() {
+      $(this).toggleClass('active');
+    })
+
 d3.selection.prototype.moveToBack = function() { 
     return this.each(function() { 
         var firstChild = this.parentNode.firstChild; 
@@ -57,7 +120,9 @@ var m = [40, 120, 20, 85],
 var maxDepth = 4
   labelCutoff = 35
   selectColor = "#f7b425"
-  hoverColor = "#89aad3";
+  hoverColor = "#89aad3"
+  boroughs = ['BK', 'MN', 'BX', 'QN', 'SI'];
+
 
 var tree = d3.layout.tree()
     .size([h, w]);
@@ -238,12 +303,37 @@ function update(source) {
 }
 
 // Toggle children.
-function toggle(d) {
+/*function toggle(d) {
   if (d.children) {
     d._children = d.children;
     d.children = null;
   } else {
     d.children = d._children;
+    d._children = null;
+  }
+}
+*/
+function toggle(d) {
+  if (d.children) {
+    d._children = d.hidden_children ? d.children.concat(d.hidden_children) : d.children;
+    d.children = null;
+  } else {
+    d.children = [];
+    for (var i = 0; i < d._children.length; i++) {
+      if(d._children[i].hasOwnProperty('attr')) {
+        if(boroughs.indexOf(d._children[i].attr.Borough) >= 0) {
+          console.log(d._children[i]);
+          d.children.push(d._children[i]);
+        } else {
+          d.hidden_children.push(d._children[i]);
+        }
+      } else {
+        console.log("no attributes");
+        d.children.push(d._children[i]);
+      }
+    }
+
+    //d.children = d._children;
     d._children = null;
   }
 }
@@ -400,6 +490,36 @@ function startSearch() {
 function openMap(fac) {
   console.log("opening map");
   window.open("http://maps.google.com?q=" + fac.name);
+}
+
+function toggleBorough(b) {
+  if (boroughs.indexOf(b) < 0) {
+    boroughs.push(b);
+  } else {
+    boroughs.splice(boroughs.indexOf(b), 1);
+  } 
+  console.log(boroughs);
+  update(root);
+}
+
+function toggleBK() {
+  toggleBorough('BK');
+}
+
+function toggleMN() {
+  toggleBorough('MN');
+}
+
+function toggleBX() {
+  toggleBorough('BX');
+}
+
+function toggleSI() {
+  toggleBorough('SI');
+}
+
+function toggleQN() {
+  toggleBorough('QN');
 }
 /*
 $(".long").mouseover(function() {
