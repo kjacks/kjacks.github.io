@@ -6,7 +6,7 @@
     <link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <script type="text/javascript" src="d3/d3.js"></script>
     <script type="text/javascript" src="d3/d3.layout.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery-2.1.4.min.js"></script>
     <style type="text/css">
 
 
@@ -118,6 +118,7 @@ var m = [40, 120, 20, 85],
 
 //maximum depth of the tree, used to determine if node is leaf, FUTURE:should use a function to set
 var maxDepth = 4
+  maxDescend = 0;
   labelCutoff = 35
   selectColor = "#f7b425"
   hoverColor = "#89aad3"
@@ -143,7 +144,11 @@ d3.json("SFPSDparsedattr.json", function(json) {
   
   root.children.forEach(toggleAll);
 
+  maxDescend = numDescend(root);
+
   update(root);
+
+  
 });
 
 function toggleAll(d) {
@@ -179,7 +184,7 @@ function update(source) {
   });
 
   var radiusScale = d3.scale.log()
-                    .domain([1, root.descend])
+                    .domain([1, maxDescend])
                     .range([1, 8]);
 
   // Update the nodes…
@@ -229,9 +234,10 @@ function update(source) {
       .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
   nodeEnter.append("svg:text")
-      .attr("x", function(d) { 
-        var offset = radiusScale(d.descend) + 5;
+      .attr("x", function(d) { return d.children || d._children ? -10 : 10;})
+        /*var offset = radiusScale(d.descend) + 7;
         return offset * (d.children || d._children ? -1 : 1); })
+      */
       .attr("dy", ".35em")
       .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
       .attr("font-weight", function(d) { return d.children ? "bold" : "normal";})
@@ -248,7 +254,7 @@ function update(source) {
   
 
   nodeUpdate.select("circle")
-      .attr("r", function(d) {return radiusScale(d.descend);})
+      .attr("r", function(d) {return d.descend ? radiusScale(d.descend) : .1;})
       .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
   nodeUpdate.select("text")
@@ -406,12 +412,18 @@ function numChildren(node) {
 }
 
 function numDescend(node) {
-  if(node.descend) {
+  console.log(node);
+  /*if(node.descend) {
     return node.descend;
-  }
+  }*/
   var totDescend = 0;
   visit(node, function(d) {
-        d.children || d._children ? null : totDescend++;
+        //console.log(d);
+        if(!(d.children || d._children)) {
+          if(boroughs.indexOf(d.attr.Borough) >= 0) {
+            totDescend++;
+          }
+        }
     }, function(d) {
         var ret_value = d.children && d.children.length > 0 || d._children && d._children.length > 0 ? d.children || d._children : null;
         return ret_value;
@@ -500,11 +512,8 @@ function toggleBorough(b) {
   } else {
     boroughs.splice(boroughs.indexOf(b), 1);
   } 
-  console.log(boroughs);
-
   
   tree.nodes(root).reverse().forEach(function(d) {
-    console.log(d);
     if(d.depth == (maxDepth - 1) && d.children || d.hidden_children) {
       toggle(d);
       toggle(d);
