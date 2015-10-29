@@ -140,18 +140,18 @@ d3.json("SFPSDparsedattr.json", function(json) {
   root = json;
   root.x0 = h / 2;
   root.y0 = 0;
+  
+  root.children.forEach(toggleAll);
 
-  function toggleAll(d) {
+  update(root);
+});
+
+function toggleAll(d) {
     if (d.children) {
       d.children.forEach(toggleAll);
       toggle(d);
     }
   }
-
-  root.children.forEach(toggleAll);
-
-  update(root);
-});
 
 function update(source) {
   resizeSvg();
@@ -175,6 +175,7 @@ function update(source) {
 
     }*/
     d.descend = numDescend(d);
+    //console.log(d);
   });
 
   var radiusScale = d3.scale.log()
@@ -317,18 +318,19 @@ function toggle(d) {
   if (d.children) {
     d._children = d.hidden_children ? d.children.concat(d.hidden_children) : d.children;
     d.children = null;
+    d.hidden_children = null;
   } else {
     d.children = [];
     for (var i = 0; i < d._children.length; i++) {
       if(d._children[i].hasOwnProperty('attr')) {
         if(boroughs.indexOf(d._children[i].attr.Borough) >= 0) {
-          console.log(d._children[i]);
           d.children.push(d._children[i]);
         } else {
-          d.hidden_children.push(d._children[i]);
+          //console.log(d._children[i]);
+          d.hidden_children ? d.hidden_children.push(d._children[i]) : d.hidden_children = [d._children[i]];
         }
       } else {
-        console.log("no attributes");
+        //console.log("no attributes");
         d.children.push(d._children[i]);
       }
     }
@@ -499,6 +501,15 @@ function toggleBorough(b) {
     boroughs.splice(boroughs.indexOf(b), 1);
   } 
   console.log(boroughs);
+
+  
+  tree.nodes(root).reverse().forEach(function(d) {
+    console.log(d);
+    if(d.depth == (maxDepth - 1) && d.children || d.hidden_children) {
+      toggle(d);
+      toggle(d);
+    }
+  });
   update(root);
 }
 
