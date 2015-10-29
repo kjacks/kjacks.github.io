@@ -7,6 +7,8 @@
     <script type="text/javascript" src="d3/d3.js"></script>
     <script type="text/javascript" src="d3/d3.layout.js"></script>
     <script type="text/javascript" src="jquery-2.1.4.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhBRV_S71WiAX-_8ZYvPdH9MzO8fnb7uY&callback=initMap"
+        async defer></script>
     <style type="text/css">
 
 
@@ -60,10 +62,16 @@ path.link {
   font-weight: bold;
 }
 
+#map {
+        height: 100%;
+        visibility:hidden;
+}
+
     </style>
   </head>
   <body>
     <div id="body">
+      
       <nav class="navbar navbar-default navbar-fixed-top">
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
@@ -94,6 +102,8 @@ path.link {
   </div><!-- /.container-fluid -->
 </nav>
       
+         <div style="height:30%; width:30%; position:absolute;" id="map"></div>
+      
     </div>
     <script type="text/javascript">
 
@@ -117,13 +127,23 @@ var m = [40, 120, 20, 85],
     root;
 
 //maximum depth of the tree, used to determine if node is leaf, FUTURE:should use a function to set
-var maxDepth = 4
-  maxDescend = 0;
-  labelCutoff = 35
-  selectColor = "#f7b425"
-  hoverColor = "#89aad3"
+var maxDepth = 4,
+  maxDescend = 0,
+  map,
+  labelCutoff = 35,
+  selectColor = "#f7b425",
+  hoverColor = "#89aad3",
   boroughs = ['BK', 'MN', 'BX', 'QN', 'SI'];
 
+function initMap() {
+  console.log("initializing map");
+  // Create a map object and specify the DOM element for display.
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: {lat: -40.7127, lng: 74.0059},
+    scrollwheel: true,
+    zoom: 15
+  });
+}
 
 var tree = d3.layout.tree()
     .size([h, w]);
@@ -201,7 +221,8 @@ function update(source) {
         } else {
           d3.select(this).select("text").attr("font-weight", "normal").attr("fill", "black");
         }
-        d.children || d._children ? toggle(d) : openMap(d); 
+        //d.children || d._children ? toggle(d) : openMap(d); 
+        d.children || d._children ? toggle(d) : null; 
         update(d);
         
       })
@@ -221,12 +242,14 @@ function update(source) {
             .style("fill", "white")
             .moveToBack();
         }
+        d.children || d._children ? null : openMap(d);
       })
       .on("mouseout", function(d) {
         d3.select("rect").remove();  
         d3.select(this).select("text").attr("fill", function(d) {return d.children ? selectColor : "black";});
         d3.select(this).select("text").text(function(d) 
           {return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
+        d.children || d._children ? null : document.getElementById('map').style.visibility = "hidden";;
       });
 
   nodeEnter.append("svg:circle")
@@ -412,7 +435,6 @@ function numChildren(node) {
 }
 
 function numDescend(node) {
-  console.log(node);
   /*if(node.descend) {
     return node.descend;
   }*/
@@ -502,8 +524,51 @@ function startSearch() {
 }
 
 function openMap(fac) {
-  console.log("opening map");
-  window.open("http://maps.google.com?q=" + fac.name);
+  console.log(fac);
+  //window.open("http://maps.google.com?q=" + fac.name);
+  
+
+  var address = fac.attr.FacAddress + ", New York, New York";
+  console.log(address);
+
+  var geocoder = new google.maps.Geocoder();
+  if (geocoder) {
+      geocoder.geocode( { 'address': address}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          if (status != google.maps.GeocoderStatus.ZERO_RESULTS) {
+          map.setCenter(results[0].geometry.location);
+            var infowindow = new google.maps.InfoWindow(
+                { content: '<b>'+address+'</b>',
+                  size: new google.maps.Size(150,50)
+                });
+
+            var marker = new google.maps.Marker({
+                position: results[0].geometry.location,
+                map: map, 
+                title:address
+            }); 
+            google.maps.event.addListener(marker, 'click', function() {
+                infowindow.open(map,marker);
+            });
+
+          } else {
+            alert("No results found");
+          }
+        } else {
+          alert("Geocode was not successful for the following reason: " + status);
+        }
+      });
+    }
+
+
+  map.setCenter(new google.maps.LatLng(37.4419, -122.1419));
+  map.addListener('center_changed', function() {
+    document.getElementById('map').style.visibility = "visible";
+    document.getElementById('map').style.top = (fac.x - 15) + "px";
+    document.getElementById('map').style.left = (fac.y - 230) + "px";
+  });
+  
+  
 }
 
 function toggleBorough(b) {
@@ -541,6 +606,10 @@ function toggleSI() {
 function toggleQN() {
   toggleBorough('QN');
 }
+
+
+
+  
 /*
 $(".long").mouseover(function() {
     console.log("scrolling");
