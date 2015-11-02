@@ -62,9 +62,44 @@ path.link {
   font-weight: bold;
 }
 
-#map {
-        height: 100%;
+#facWindow {
+        position:absolute;
+        display:inline-block;
+        z-index: 2;
         visibility:hidden;
+        margin: 10px;
+        border-radius: 25px;
+        border: 2px solid lightsteelblue;
+        padding: 20px; 
+        padding-top: 10px;
+        padding-bottom: 10px;
+        background:white;
+        height:200px;
+        width:350px;
+        font-family: "Helvetica Neue", Helvetica;
+        text-shadow: 0 1px 0 #fff;
+        box-shadow: 0px 0px 5px lightsteelblue;
+}
+
+#facName, #facAttr {
+  position:relative;
+  padding-bottom: 5px;
+  text-align: center;
+  text-shadow: 0 1px 0 #fff;
+  color: #5D5D5D;
+  font-weight: bold;
+}
+
+
+#facAttr {
+  columns:;
+  padding-top: 5px;
+  font-weight: normal;
+  text-align: left;
+}
+
+#map {
+  height:100px; width:300px; position:relative;" 
 }
 
     </style>
@@ -73,37 +108,44 @@ path.link {
     <div id="body">
       
       <nav class="navbar navbar-default navbar-fixed-top">
-  <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-text" >New York City Facilities</span>
-    </div>
+        <div class="container-fluid">
+          <!-- Brand and toggle get grouped for better mobile display -->
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <span class="navbar-text" >New York City Facilities</span>
+          </div>
 
-    <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse">
-      <ul class="nav navbar-nav">
-        <li><a class="boro active" onclick='javascript:toggleMN()'>Manhattan</a></li>
-        <li><a class="boro active" onclick='javascript:toggleBK()'>Brooklyn</a></li>
-        <li><a class="boro active" onclick='javascript:toggleBX()'>Bronx</a></li>
-        <li><a class="boro active" onclick='javascript:toggleQN()'>Queens</a></li>
-        <li><a class="boro active" onclick='javascript:toggleSI()'>Staten Island</a></li>
-      </ul>
-      <form id="search" > 
-          <input type="text" id="inputFac" placeholder="Search for a Facility or Category">
-          <input type="button" value="Search" onClick='javascript:startSearch()'>
-      </form>
-    </div><!-- /.navbar-collapse -->
-  </div><!-- /.container-fluid -->
-</nav>
-      
-         <div style="height:30%; width:30%; position:absolute;" id="map"></div>
-      
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+              <li><a class="boro active" onclick='javascript:toggleMN()'>Manhattan</a></li>
+              <li><a class="boro active" onclick='javascript:toggleBK()'>Brooklyn</a></li>
+              <li><a class="boro active" onclick='javascript:toggleBX()'>Bronx</a></li>
+              <li><a class="boro active" onclick='javascript:toggleQN()'>Queens</a></li>
+              <li><a class="boro active" onclick='javascript:toggleSI()'>Staten Island</a></li>
+            </ul>
+            <form id="search" > 
+                <input type="text" id="inputFac" placeholder="Search for a Facility or Category">
+                <input type="button" value="Search" onClick='javascript:startSearch()'>
+            </form>
+          </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+      </nav>
+        <div id="facWindow">
+          <div id="facName"></div>
+          <div id="map"></div>
+          <ul id="facAttr">
+            <li></li>
+            <li></li>
+          </ul>
+          </div>
+
+        </div>
     </div>
     <script type="text/javascript">
 
@@ -135,6 +177,8 @@ var maxDepth = 4,
   hoverColor = "#89aad3",
   boroughs = ['BK', 'MN', 'BX', 'QN', 'SI'];
 
+var firstUpdate = true;
+
 function initMap() {
   console.log("initializing map");
   // Create a map object and specify the DOM element for display.
@@ -151,6 +195,10 @@ var tree = d3.layout.tree()
 var diagonal = d3.svg.diagonal()
     .projection(function(d) { return [d.y, d.x]; });
 
+d3.select("#body").on("click", function() { 
+      console.log("hiding map"); 
+      document.getElementById('facWindow').style.visibility = "hidden";});
+
 var vis = d3.select("#body").append("svg:svg")
     .attr("width", w + m[1] + m[3])
     .attr("height", h + m[0] + m[2])
@@ -162,6 +210,8 @@ d3.json("SFPSDparsedattr.json", function(json) {
   root.x0 = h / 2;
   root.y0 = 0;
   
+  orderChildren(root);
+
   root.children.forEach(toggleAll);
 
   maxDescend = numDescend(root);
@@ -173,8 +223,27 @@ d3.json("SFPSDparsedattr.json", function(json) {
 
 function toggleAll(d) {
     if (d.children) {
+      orderChildren(d);
       d.children.forEach(toggleAll);
       toggle(d);
+    }
+}
+
+function orderChildren(d) {
+    if (d.children) {
+      d.children = d.children.sort(function (a, b) {
+        if (numDescend(a) > numDescend(b)) {return -1;}
+        if (numDescend(a) < numDescend(b)) {return 1;}
+        // a must be equal to b
+        return 0;
+      });
+    } else if (d._children) {
+      d._children = d._children.sort(function (a, b) {
+        if (numDescend(a) > numDescend(b)) {return -1;}
+        if (numDescend(a) < numDescend(b)) {return 1;}
+        // a must be equal to b
+        return 0;
+      });
     }
   }
 
@@ -187,7 +256,8 @@ function update(source) {
   var nodes = tree.nodes(root).reverse();
 
   // set node x,y postions and count descendents
-  nodes.forEach(function(d) { 
+  nodes.forEach(function(d) {
+
     d.y = d.depth * 225;
     /*
     //if overlap found and name is long and is not a leaf, offset
@@ -200,8 +270,9 @@ function update(source) {
 
     }*/
     d.descend = numDescend(d);
-    //console.log(d);
+
   });
+  
 
   var radiusScale = d3.scale.log()
                     .domain([1, maxDescend])
@@ -222,7 +293,7 @@ function update(source) {
           d3.select(this).select("text").attr("font-weight", "normal").attr("fill", "black");
         }
         //d.children || d._children ? toggle(d) : openMap(d); 
-        d.children || d._children ? toggle(d) : null; 
+        d.children || d._children ? toggle(d) : openMap(d); 
         update(d);
         
       })
@@ -242,14 +313,14 @@ function update(source) {
             .style("fill", "white")
             .moveToBack();
         }
-        d.children || d._children ? null : openMap(d);
+        //d.children || d._children ? null : openMap(d);
       })
       .on("mouseout", function(d) {
         d3.select("rect").remove();  
         d3.select(this).select("text").attr("fill", function(d) {return d.children ? selectColor : "black";});
         d3.select(this).select("text").text(function(d) 
           {return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
-        d.children || d._children ? null : document.getElementById('map').style.visibility = "hidden";;
+        //d.children || d._children ? null : document.getElementById('map').style.visibility = "hidden";;
       });
 
   nodeEnter.append("svg:circle")
@@ -330,6 +401,7 @@ function update(source) {
     d.y0 = d.y;
   });
 
+  firstUpdate = false;
 }
 
 // Toggle children.
@@ -560,12 +632,16 @@ function openMap(fac) {
       });
     }
 
-
   map.setCenter(new google.maps.LatLng(37.4419, -122.1419));
   map.addListener('center_changed', function() {
-    document.getElementById('map').style.visibility = "visible";
-    document.getElementById('map').style.top = (fac.x - 15) + "px";
-    document.getElementById('map').style.left = (fac.y - 230) + "px";
+    document.getElementById('facWindow').style.visibility = "visible";
+    $("#facName").text(fac.name);
+
+    $("#facAttr").find("li").eq(0).text("Borough: " + fac.attr.Borough);
+    $("#facAttr").find("li").eq(1).text("Address: " + fac.attr.FacAddress);
+
+    document.getElementById('facWindow').style.top = (fac.x - 70) + "px";
+    document.getElementById('facWindow').style.left = (fac.y - 280) + "px";
   });
   
   
