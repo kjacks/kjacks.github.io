@@ -335,7 +335,11 @@ function update(source) {
             .style("fill", "white")
             .moveToBack();
         }
-        d.depth < (maxDepth-1) && d.descend > 0 ? openPie(d) : null;
+        //testing
+        d._children ? toggle(d) : null; 
+        update(d);
+        //d.depth < (maxDepth-1) && d.descend > 0 ? openPie(d) : null;
+        //done testing
       })
       .on("mouseout", function(d) {
         d3.select("rect").remove();  
@@ -344,7 +348,11 @@ function update(source) {
           {return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
         document.getElementById('pieContainer').style.visibility = "hidden";
         $("#pieContainer").find("svg").remove("*");
+        //testing
+        d.children ? toggle(d) : null;
+        update(d);
         //d.children || d._children ? null : document.getElementById('map').style.visibility = "hidden";;
+        //done testing
       });
 
   nodeEnter.append("svg:circle")
@@ -363,6 +371,18 @@ function update(source) {
       .text(function(d) {
         return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
       .style("fill-opacity", 1e-6);
+/*
+  nodeEnter.append("svg:text")
+      
+      .attr("dy", ".35em")
+      //.attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+      .attr("font-weight", function(d) { return d.children ? "bold" : "normal";})
+      .attr("fill", "black")
+      .attr("stroke", "black")
+      .text(function(d) {
+        return d.descend});
+      //.style("fill-opacity", 1e-6);
+  */
 
   // Transition nodes to their new position.
   var nodeUpdate = node.transition()
