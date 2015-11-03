@@ -8,8 +8,7 @@
     <script type="text/javascript" src="d3/d3.layout.js"></script>
     <script type="text/javascript" src="jquery-2.1.4.min.js"></script>
     <script src="colorbrewer.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhBRV_S71WiAX-_8ZYvPdH9MzO8fnb7uY&callback=initMap"
-        async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhBRV_S71WiAX-_8ZYvPdH9MzO8fnb7uY"></script>
     <style type="text/css">
 
 
@@ -69,16 +68,19 @@ path.link {
         z-index: 2;
         visibility:hidden;
         margin: 10px;
+        box-shadow: 0px 0px 5px lightsteelblue;
         border-radius: 25px;
-        border: 2px solid lightsteelblue;
         
         background:white;
         font-family: "Helvetica Neue", Helvetica;
         text-shadow: 0 1px 0 #fff;
-        box-shadow: 0px 0px 5px lightsteelblue;
+        
 }
 
 #facWindow {
+  
+  
+
   height:200px;
   width:350px;
   padding: 20px; 
@@ -168,7 +170,7 @@ path.link {
         
     </div>
     <script type="text/javascript">
-
+    initMap();
     $('.boro').click(function() {
       $(this).toggleClass('active');
     })
@@ -182,7 +184,7 @@ d3.selection.prototype.moveToBack = function() {
     }); 
 };
 //set dimensions and margins
-var m = [40, 120, 20, 85],
+var m = [50, 120, 20, 85],
     w = 1280 - m[1] - m[3],
     h = 800 - m[0] - m[2],
     i = 0,
@@ -333,7 +335,7 @@ function update(source) {
             .style("fill", "white")
             .moveToBack();
         }
-        d.children || d._children ? openPie(d) : null;
+        d.depth < (maxDepth-1) && d.descend > 0 ? openPie(d) : null;
       })
       .on("mouseout", function(d) {
         d3.select("rect").remove();  
@@ -622,7 +624,8 @@ function openPie(fac) {
   drawPie(fac);
   $("#catName").text(fac.name);
   document.getElementById('pieContainer').style.visibility = "visible";
-  document.getElementById('pieContainer').style.top = (fac.x - 70) + "px";
+  //sets pie position - if window overlaps with banner, shifts down
+  document.getElementById('pieContainer').style.top = fac.x < 115 ? "45px" : (fac.x - 70) + "px";
   document.getElementById('pieContainer').style.left = (fac.y + 90) + "px";
 
 }
@@ -672,7 +675,8 @@ function openMap(fac) {
     $("#facAttr").find("li").eq(0).text("Borough: " + fac.attr.Borough);
     $("#facAttr").find("li").eq(1).text("Address: " + fac.attr.FacAddress);
 
-    document.getElementById('facWindow').style.top = (fac.x - 70) + "px";
+    //sets facility info window position - if window overlaps with banner, shifts down
+    document.getElementById('facWindow').style.top = fac.x < 115 ? "45px" : (fac.x - 70) + "px";
     document.getElementById('facWindow').style.left = (fac.y - 280) + "px";
   });
   
@@ -716,19 +720,18 @@ function toggleQN() {
 }
 
 function drawPie(fac) {
-  console.log(fac);
-
   var data = fac.children ? fac.children : fac._children;
-  console.log(data);
+  
   var dataLength = data.length;
+  
+  dataLength = dataLength < 3 ? 3 : dataLength;
+  dataLength = dataLength > 9 ? 9 : dataLength;
 
   var piesvgw = 280,
     piesvgh = 200,
     piew = 180,
     pieh = 180,
     radius = Math.min(piew, pieh) / 2;
-
-  console.log(colorbrewer.Blues[dataLength + 1]);
 
   var color = d3.scale.ordinal()
       .range(colorbrewer.GnBu[dataLength]);
