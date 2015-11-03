@@ -298,7 +298,7 @@ function update(source) {
 
   var radiusScale = d3.scale.log()
                     .domain([1, maxDescend])
-                    .range([1, 8]);
+                    .range([1, 30]);
 
   // Update the nodes…
   var node = vis.selectAll("g.node")
@@ -335,11 +335,9 @@ function update(source) {
             .style("fill", "white")
             .moveToBack();
         }
-        //testing
-        d._children ? toggle(d) : null; 
-        update(d);
+        
+        
         //d.depth < (maxDepth-1) && d.descend > 0 ? openPie(d) : null;
-        //done testing
       })
       .on("mouseout", function(d) {
         d3.select("rect").remove();  
@@ -348,11 +346,10 @@ function update(source) {
           {return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
         document.getElementById('pieContainer').style.visibility = "hidden";
         $("#pieContainer").find("svg").remove("*");
-        //testing
-        d.children ? toggle(d) : null;
-        update(d);
-        //d.children || d._children ? null : document.getElementById('map').style.visibility = "hidden";;
-        //done testing
+        
+        
+        d.children || d._children ? null : document.getElementById('map').style.visibility = "hidden";
+        
       });
 
   nodeEnter.append("svg:circle")
@@ -360,10 +357,9 @@ function update(source) {
       .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
   nodeEnter.append("svg:text")
-      .attr("x", function(d) { return d.children || d._children ? -10 : 10;})
-        /*var offset = radiusScale(d.descend) + 7;
+      .attr("x", function(d) {
+        var offset = radiusScale(d.descend) + 7;
         return offset * (d.children || d._children ? -1 : 1); })
-      */
       .attr("dy", ".35em")
       .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
       .attr("font-weight", function(d) { return d.children ? "bold" : "normal";})
@@ -371,25 +367,30 @@ function update(source) {
       .text(function(d) {
         return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
       .style("fill-opacity", 1e-6);
-/*
+
   nodeEnter.append("svg:text")
-      
-      .attr("dy", ".35em")
-      //.attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
-      .attr("font-weight", function(d) { return d.children ? "bold" : "normal";})
-      .attr("fill", "black")
-      .attr("stroke", "black")
+      .attr("class", "desc")
+      .attr("dy", function(d) {return d.depth == 0 ? "-.35em" : ".35em"})
+      .attr("text-anchor", "middle")
+      .attr("font-weight", "bold")
+      .attr("fill", "steelblue")
       .text(function(d) {
-        return d.descend});
+        var text = d.children || d._children ? d.descend : null;
+        //text += d.depth == 0 ? " Facilities" : null;
+        return text; });
       //.style("fill-opacity", 1e-6);
-  */
+  nodeEnter.append("svg:text")
+      .attr("class", "fac")
+      .attr("dy", ".75em")
+      .attr("text-anchor", "middle")
+      .attr("font-weight", "bold")
+      .attr("fill", "steelblue")
+      .text(function(d) {return d.depth == 0 && d.descend > 1 ? " Facilities" : null;});
 
   // Transition nodes to their new position.
   var nodeUpdate = node.transition()
       .duration(duration)
       .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
-
-  
 
   nodeUpdate.select("circle")
       .attr("r", function(d) {return d.descend ? radiusScale(d.descend) : .1;})
@@ -397,6 +398,14 @@ function update(source) {
 
   nodeUpdate.select("text")
       .style("fill-opacity", 1);
+
+  nodeUpdate.select(".desc")
+    .text(function(d) {
+        var text = d.descend > 1 ? d.descend : null;
+        return text; });
+
+  nodeUpdate.select(".fac")
+    .text(function(d) {return d.depth == 0 && d.descend > 1 ? " Facilities" : null;});
 
   // Transition exiting nodes to the parent's new position.
   var nodeExit = node.exit().transition()
