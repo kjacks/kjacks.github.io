@@ -7,6 +7,7 @@
     <script type="text/javascript" src="d3/d3.js"></script>
     <script type="text/javascript" src="d3/d3.layout.js"></script>
     <script type="text/javascript" src="jquery-2.1.4.min.js"></script>
+    <script src="colorbrewer.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhBRV_S71WiAX-_8ZYvPdH9MzO8fnb7uY&callback=initMap"
         async defer></script>
     <style type="text/css">
@@ -62,7 +63,7 @@ path.link {
   font-weight: bold;
 }
 
-#facWindow {
+#facWindow, #pieContainer {
         position:absolute;
         display:inline-block;
         z-index: 2;
@@ -70,18 +71,28 @@ path.link {
         margin: 10px;
         border-radius: 25px;
         border: 2px solid lightsteelblue;
-        padding: 20px; 
-        padding-top: 10px;
-        padding-bottom: 10px;
+        
         background:white;
-        height:200px;
-        width:350px;
         font-family: "Helvetica Neue", Helvetica;
         text-shadow: 0 1px 0 #fff;
         box-shadow: 0px 0px 5px lightsteelblue;
 }
 
-#facName, #facAttr {
+#facWindow {
+  height:200px;
+  width:350px;
+  padding: 20px; 
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+#pieContainer {
+  height:220px;
+  width:300px;
+  padding: 10px;
+}
+
+#facName, #facAttr, #catName {
   position:relative;
   padding-bottom: 5px;
   text-align: center;
@@ -90,9 +101,11 @@ path.link {
   font-weight: bold;
 }
 
+#catName {
+  padding-bottom: 0px;
+}
 
 #facAttr {
-  columns:;
   padding-top: 5px;
   font-weight: normal;
   text-align: left;
@@ -100,6 +113,10 @@ path.link {
 
 #map {
   height:100px; width:300px; position:relative;" 
+}
+
+#pie {
+
 }
 
     </style>
@@ -136,16 +153,19 @@ path.link {
           </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
       </nav>
-        <div id="facWindow">
-          <div id="facName"></div>
-          <div id="map"></div>
-          <ul id="facAttr">
-            <li></li>
-            <li></li>
-          </ul>
-          </div>
+      <div id="facWindow">
+        <div id="facName"></div>
+        <div id="map"></div>
+        <ul id="facAttr">
+          <li></li>
+          <li></li>
+        </ul>
+      </div>
 
-        </div>
+      <div id="pieContainer">
+        <div id="catName"></div>
+      </div>
+        
     </div>
     <script type="text/javascript">
 
@@ -196,7 +216,7 @@ var diagonal = d3.svg.diagonal()
     .projection(function(d) { return [d.y, d.x]; });
 
 d3.select("#body").on("click", function() { 
-      console.log("hiding map"); 
+      //console.log("hiding map"); 
       document.getElementById('facWindow').style.visibility = "hidden";});
 
 var vis = d3.select("#body").append("svg:svg")
@@ -313,13 +333,15 @@ function update(source) {
             .style("fill", "white")
             .moveToBack();
         }
-        //d.children || d._children ? null : openMap(d);
+        d.children || d._children ? openPie(d) : null;
       })
       .on("mouseout", function(d) {
         d3.select("rect").remove();  
         d3.select(this).select("text").attr("fill", function(d) {return d.children ? selectColor : "black";});
         d3.select(this).select("text").text(function(d) 
           {return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
+        document.getElementById('pieContainer').style.visibility = "hidden";
+        $("#pieContainer").find("svg").remove("*");
         //d.children || d._children ? null : document.getElementById('map').style.visibility = "hidden";;
       });
 
@@ -595,6 +617,16 @@ function startSearch() {
   }
 }
 
+function openPie(fac) {
+  //console.log(fac);
+  drawPie(fac);
+  $("#catName").text(fac.name);
+  document.getElementById('pieContainer').style.visibility = "visible";
+  document.getElementById('pieContainer').style.top = (fac.x - 70) + "px";
+  document.getElementById('pieContainer').style.left = (fac.y + 90) + "px";
+
+}
+
 function openMap(fac) {
   console.log(fac);
   //window.open("http://maps.google.com?q=" + fac.name);
@@ -683,7 +715,70 @@ function toggleQN() {
   toggleBorough('QN');
 }
 
+function drawPie(fac) {
+  console.log(fac);
 
+  var data = fac.children ? fac.children : fac._children;
+  console.log(data);
+  var dataLength = data.length;
+
+  var piesvgw = 280,
+    piesvgh = 200,
+    piew = 180,
+    pieh = 180,
+    radius = Math.min(piew, pieh) / 2;
+
+  console.log(colorbrewer.Blues[dataLength + 1]);
+
+  var color = d3.scale.ordinal()
+      .range(colorbrewer.GnBu[dataLength]);
+
+  var arc = d3.svg.arc()
+      .outerRadius(radius - 10)
+      .innerRadius(0);
+
+  var pie = d3.layout.pie()
+      .sort(null)
+      .value(function(d) { return d.descend; });
+
+  var piesvg = d3.select("#pieContainer").append("svg")
+      .attr("width", piesvgw)
+      .attr("height", piesvgh)
+      .attr("visibility", "normal")
+    .append("g")
+      .attr("transform", "translate(" + piesvgw / 2 + "," + piesvgh / 2 + ")");
+
+  
+  data.forEach(function(d) {
+    d.descend = numDescend(d);
+    //d.descend = +d.population;
+  });
+
+    var g = piesvg.selectAll(".arc")
+        .data(pie(data))
+      .enter().append("g")
+        .attr("class", "arc");
+
+    g.append("path")
+        .attr("d", arc)
+        .style("opacity", ".7")
+        .style("fill", function(d) { return color(d.data.name); });
+
+    g.append("text")
+        .attr("transform", function(d) {
+          return "translate(" + 
+            ( (radius - 12) * Math.sin( ((d.endAngle - d.startAngle) / 2) + d.startAngle ) ) +
+            ", " +
+            ( -1 * (radius - 12) * Math.cos( ((d.endAngle - d.startAngle) / 2) + d.startAngle ) ) +
+          ")";
+         })
+        .attr("dy", ".35em")
+        .style("text-anchor", "middle")
+        .style("font-size", "8px")
+        .text(function(d) { return d.data.name; }); 
+  
+  
+}
 
   
 /*
