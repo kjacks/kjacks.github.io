@@ -196,7 +196,7 @@ var maxDepth = 4,
   primaryColor = "rgb(0,68,104)",
   boroughs = ['BK', 'MN', 'BX', 'QN', 'SI'];
 
-  
+var levelWidth;
 
 
 function initMap() {
@@ -281,19 +281,20 @@ function update(source) {
                     .range([1, 30]);
 
   // set node x,y postions and count descendents
-  nodes.forEach(function(d) {
+  /*nodes.forEach(function(d) {
     if(d.depth > currMaxDepth) {
       currMaxDepth = d.depth;
     }
   })
-
+  */
   nodes.forEach(function(d) {
     d.y = d.depth * (d.depth == maxDepth ? 240 : 255);
     d.descend = numDescend(d);
     var radius = radiusScale(d.descend);
   
     //if ((prevNode.parent == d.parent) && (prevNode.id == d.id-1)) {
-    if (currMaxDepth > 3) {
+    if (d3.max(levelWidth) >= 50) {
+      console.log(d3.max(levelWidth));
       if (d.depth != maxDepth) {
         offset[d.depth] += radius * (offset[d.depth] == 0 ? 1 : 2);
         //d.x = d.x - d.offset;
@@ -378,7 +379,7 @@ function update(source) {
 
   nodeEnter.append("svg:text")
       .attr("x", function(d) {
-        var offset = radiusScale(d.descend) + 7;
+        var offset = 7 + (d.descend > 0 ? radiusScale(d.descend) : 0);
         return offset * (d.children || d._children ? -1 : 1); })
       .attr("dy", ".35em")
       .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
@@ -395,7 +396,7 @@ function update(source) {
       .attr("font-weight", "bold")
       .attr("fill", "white")
       .text(function(d) {
-        var text = d.children || d._children ? d.descend : null;
+        var text = (d.descend >= 5 ? d.descend : null);
         //text += d.depth == 0 ? " Facilities" : null;
         return text; });
       //.style("fill-opacity", 1e-6);
@@ -422,7 +423,7 @@ function update(source) {
 
   nodeUpdate.select(".desc")
     .text(function(d) {
-        var text = d.descend > 1 ? d.descend : null;
+        var text = (d.descend >= 5 ? d.descend : null);
         return text; });
 
   nodeUpdate.select(".fac")
@@ -517,7 +518,7 @@ function toggle(d) {
 
 //calculates level with max number of nodes open, stores currently open nodes for each level in levelWidth array
 function resizeSvg() {
-  var levelWidth = [1];
+  levelWidth = [1];
   var childCount = function(level, n) {
     if (n.children && n.children.length > 0) {
       if (levelWidth.length <= level + 1) levelWidth.push(0);
