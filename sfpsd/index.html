@@ -214,7 +214,6 @@ var maxDepth = 4,
 
 var levelWidth;
 
-
 function initMap() {
   console.log("initializing map");
   // Create a map object and specify the DOM element for display.
@@ -350,9 +349,18 @@ function update(source) {
           d3.select(this).select("text").attr("font-weight", "normal").attr("fill", primaryColor);
         }
         //d.children || d._children ? toggle(d) : openMap(d); 
+        var svgh = d3.select("svg").attr("height");
         d.children || d._children ? toggle(d) : openMap(d); 
         update(d);
         
+        var newsvgh = d3.select("svg").attr("height");
+        if (svgh != newsvgh) {
+          var windowh = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+          console.log(d.x - windowh/2);
+          d.children || d._children ? window.scroll(0, d.x - windowh/2) : null;
+        }
       })
       .on("mouseover", function(d) { 
         //d3.select(this).select("text").attr("fill", function(d) {return d.children ?  selectColor : hoverColor;});
@@ -532,6 +540,8 @@ function toggle(d) {
     //d.children = d._children;
     d._children = null;
   }
+
+
 }
 
 //calculates level with max number of nodes open, stores currently open nodes for each level in levelWidth array
@@ -553,10 +563,13 @@ function resizeSvg() {
     var newHeight = d3.max(levelWidth) * 15; // 15 pixels per line  
     tree.size([newHeight, w]);
     d3.select("svg").attr("height", newHeight + m[0]);
+
   } else {
     tree.size([h, w]);
     d3.select("svg").attr("height", h + m[0] + m[2]);
   }
+
+
 }
 
 // A recursive helper function for performing some setup by walking through all nodes
