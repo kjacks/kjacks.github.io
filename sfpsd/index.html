@@ -306,14 +306,16 @@ function update(source) {
   nodes.forEach(function(d) {
     d.y = d.depth * (d.depth == maxDepth ? 240 : 255);
     d.descend = numDescend(d);
-    var radius = radiusScale(d.descend);
+    var radius = d.descend > 0 ? radiusScale(d.descend) : 0;
   
     //if ((prevNode.parent == d.parent) && (prevNode.id == d.id-1)) {
     if (d3.max(levelWidth) >= 50) {
-      console.log(d3.max(levelWidth));
+      
       if (d.depth != maxDepth) {
+        
         offset[d.depth] += radius * (offset[d.depth] == 0 ? 1 : 2);
         //d.x = d.x - d.offset;
+        console.log(offset[d.depth]);
         d.x = d.x - offset[d.depth];
       }
     }
@@ -327,7 +329,7 @@ function update(source) {
       d.x = newDx;
 
     }*/
-    prevNode = d;
+    //prevNode = d;
   });
   
 
