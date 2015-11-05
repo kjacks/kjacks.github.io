@@ -2,8 +2,8 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-    <link type="text/css" rel="stylesheet" href="style.css"/>
     <link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="style.css"/>
     <script type="text/javascript" src="d3/d3.js"></script>
     <script type="text/javascript" src="d3/d3.layout.js"></script>
     <script type="text/javascript" src="jquery-2.1.4.min.js"></script>
@@ -29,110 +29,7 @@ path.link {
   stroke-width: 1.5px;
 }
 
-.navbar {
-  font-size: 12px;
-  background-color:white;
-  border-color: white;
-}
 
-
-.navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>.active>a:focus, .navbar-default .navbar-nav>.active>a:hover {
-    background-color:white;
-}
-
-.nav>li>a {
-  padding-left: 3px;
-  padding-right: 3px;
-  padding-top: 0px;
-  padding-bottom: 0px;
-  margin-top: 25px;
-  margin-left: 2px;
-  margin-right: 2px;
-}
-
-.navbar-text {
-  font-size: 31px;
-  margin-bottom: 0px;
-  margin-top: 5px;
-  font-weight: 300;
-  text-shadow: 0 1px 0 #fff;
-}
-
-.boro {
-  stroke: #777;
-  color: rgb(0,68,104);
-}
-
-.active {
-  stroke: rgb(0,68,104);
-  font-weight: bold;
-  box-shadow: 0px 0px 5px rgb(219,105,27);
-  border-radius: 3px;
-}
-
-#facWindow, #pieContainer {
-        position:absolute;
-        display:inline-block;
-        z-index: 2;
-        visibility:hidden;
-        margin: 10px;
-        box-shadow: 0px 0px 5px rgb(0,68,104);
-        border-radius: 25px;
-        
-        background:white;
-        font-family: "Helvetica Neue", Helvetica;
-        text-shadow: 0 1px 0 #fff;
-        
-}
-
-#facWindow {
-  
-  
-
-  height:200px;
-  width:350px;
-  padding: 20px; 
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-
-#pieContainer {
-  height:220px;
-  width:300px;
-  padding: 10px;
-}
-
-#facName, #facAttr, #catName {
-  position:relative;
-  padding-bottom: 5px;
-  text-align: center;
-  text-shadow: 0 1px 0 #fff;
-  color: #5D5D5D;
-  font-weight: bold;
-}
-
-#catName {
-  padding-bottom: 0px;
-}
-
-#facAttr {
-  padding-top: 5px;
-  font-weight: normal;
-  text-align: left;
-}
-
-#map {
-  height:100px; width:300px; position:relative;" 
-}
-
-#prompt {
-  font-size: 12px;
-  position: absolute;
-  padding-left: 75px;
-  padding-top: 7px;
-  margin-top: 0px;
-
-}
 
 
 
@@ -158,6 +55,7 @@ path.link {
           <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
               <li class="navbar-text" id= "prompt">Select Boroughs to Display: </li>
+              <li><a class="boro active" id="all" onclick='javascript:toggleNYC()'>All NYC</a></li>
               <li><a class="boro active" onclick='javascript:toggleMN()'>Manhattan</a></li>
               <li><a class="boro active" onclick='javascript:toggleBK()'>Brooklyn</a></li>
               <li><a class="boro active" onclick='javascript:toggleBX()'>Bronx</a></li>
@@ -183,7 +81,7 @@ path.link {
     </div>
     <script type="text/javascript">
     initMap();
-    $('.boro').click(function() {
+    $('.boro:not(#all)').click(function() {
       $(this).toggleClass('active');
     })
 
@@ -211,6 +109,7 @@ var maxDepth = 4,
   hoverColor = "rgb(0,68,104)",
   primaryColor = "rgb(0,68,104)",
   boroughs = ['BK', 'MN', 'BX', 'QN', 'SI'];
+  currBoroughs = ['BK', 'MN', 'BX', 'QN', 'SI'];
 
 var levelWidth;
 
@@ -525,7 +424,7 @@ function toggle(d) {
     d.children = [];
     for (var i = 0; i < d._children.length; i++) {
       if(d._children[i].hasOwnProperty('attr')) {
-        if(boroughs.indexOf(d._children[i].attr.Borough) >= 0) {
+        if(currBoroughs.indexOf(d._children[i].attr.Borough) >= 0) {
           d.children.push(d._children[i]);
         } else {
           //console.log(d._children[i]);
@@ -620,7 +519,7 @@ function numDescend(node) {
   visit(node, function(d) {
         //console.log(d);
         if(!(d.children || d._children)) {
-          if(boroughs.indexOf(d.attr.Borough) >= 0) {
+          if(currBoroughs.indexOf(d.attr.Borough) >= 0) {
             totDescend++;
           }
         }
@@ -765,11 +664,45 @@ function openMap(fac) {
   
 }
 
-function toggleBorough(b) {
-  if (boroughs.indexOf(b) < 0) {
-    boroughs.push(b);
+function arraysEqual(a, b) {
+  if (a.length != b.length) {
+    return false;
+  }
+
+  a.sort();
+  b.sort();
+
+  if (JSON.stringify(a) == JSON.stringify(b)) {
+    return true;
   } else {
-    boroughs.splice(boroughs.indexOf(b), 1);
+    return false;
+  }
+}
+
+function toggleNYC() {
+  //if all boroughs currently selected, will unselect them all
+  if (arraysEqual(currBoroughs, boroughs)) {
+    for (var i = 0; i < boroughs.length; i++) {
+      if (currBoroughs.indexOf(boroughs[i]) >= 0) {
+        toggleBorough(boroughs[i]);
+      }
+    }
+    $(".boro").removeClass('active');
+  } else {
+    for (var i = 0; i < boroughs.length; i++) {
+      if (currBoroughs.indexOf(boroughs[i]) < 0) {
+        toggleBorough(boroughs[i]);
+      }
+    }
+    $(".boro").addClass('active');
+  }
+}
+
+function toggleBorough(b) {
+  if (currBoroughs.indexOf(b) < 0) {
+    currBoroughs.push(b);
+  } else {
+    currBoroughs.splice(currBoroughs.indexOf(b), 1);
   } 
   
   tree.nodes(root).reverse().forEach(function(d) {
@@ -778,6 +711,13 @@ function toggleBorough(b) {
       toggle(d);
     }
   });
+  
+  if (arraysEqual(currBoroughs, boroughs)) {  
+    $("#all").addClass('active');
+  } else {
+    $("#all").removeClass('active');
+  }
+
   update(root);
 }
 

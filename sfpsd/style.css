@@ -100,3 +100,136 @@ a:hover {
   font-size: 12px;
   color: #999;
 }
+
+.navbar {
+  font-size: 12px;
+  background-color:white;
+  border-color: white;
+}
+
+.navbar-default .nav.navbar-default .navbar-nav>li>a:focus, .navbar-default .navbar-nav>li>a:hover {
+  color:rgb(0,68,104);
+  box-shadow: 0px 0px 2px rgb(0,68,104);
+  border-radius: 3px;
+  background-color:white;
+}
+
+.navbar-default .nav.navbar-default .navbar-nav>li>a:focus, .navbar-default .navbar-nav>li>a.active:hover {
+  color:white;
+  background-color:rgb(0,68,104);
+  box-shadow: 0px 0px 0px rgb(0,68,104);
+  border-radius: 3px;
+}
+
+
+
+
+
+.navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>.active>a:focus, .navbar-default .navbar-nav>.active>a:hover {
+    background-color:white;
+}
+
+.nav>li>a {
+  padding-left: 3px;
+  padding-right: 3px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: 25px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.nav>li>a#all {
+  margin-top: 22px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.navbar-text {
+  color:#777;
+  font-size: 31px;
+  margin-bottom: 0px;
+  margin-top: 5px;
+  font-weight: 300;
+  text-shadow: 0 1px 0 #fff;
+}
+
+.boro {
+  color:rgb(0,68,104);
+  box-shadow: 0px 0px 2px rgb(0,68,104);
+  border-radius: 3px;
+  background-color:white;
+}
+
+.active {
+  color:white;
+  background-color:rgb(0,68,104);
+  box-shadow: 0px 0px 0px rgb(0,68,104);
+  border-radius: 3px;
+}
+
+#facWindow, #pieContainer {
+        position:absolute;
+        display:inline-block;
+        z-index: 2;
+        visibility:hidden;
+        margin: 10px;
+        box-shadow: 0px 0px 5px rgb(0,68,104);
+        border-radius: 25px;
+        
+        background:white;
+        font-family: "Helvetica Neue", Helvetica;
+        text-shadow: 0 1px 0 #fff;
+        
+}
+
+#facWindow {
+  height:200px;
+  width:350px;
+  padding: 20px; 
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+#pieContainer {
+  height:220px;
+  width:300px;
+  padding: 10px;
+}
+
+#facName, #facAttr, #catName {
+  position:relative;
+  padding-bottom: 5px;
+  text-align: center;
+  text-shadow: 0 1px 0 #fff;
+  color: #5D5D5D;
+  font-weight: bold;
+}
+
+#catName {
+  padding-bottom: 0px;
+}
+
+#facAttr {
+  padding-top: 5px;
+  font-weight: normal;
+  text-align: left;
+}
+
+#map {
+  height:100px; width:300px; position:relative;" 
+}
+
+#prompt {
+  font-size: 12px;
+  position: absolute;
+  padding-left: 75px;
+  padding-top: 7px;
+  margin-top: 0px;
+
+}
+
+#all {
+  font-weight: bold;
+}
+
