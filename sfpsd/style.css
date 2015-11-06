@@ -230,6 +230,21 @@ a:hover {
 
 }
 
+.searchbar {
+  padding-left: 715px;
+  padding-top: 24px;
+}
+
+.ui-autocomplete {
+  font-weight: normal;
+  left: 800px;
+  height: 100px;
+  width: 300px;
+  font-size: 10px;
+  overflow: scroll;
+}
+
+
 #all {
   font-weight: bold;
 }

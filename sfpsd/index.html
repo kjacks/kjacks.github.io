@@ -2,11 +2,14 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    
+    
     <link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="style.css"/>
     <script type="text/javascript" src="d3/d3.js"></script>
     <script type="text/javascript" src="d3/d3.layout.js"></script>
     <script type="text/javascript" src="jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="jquery-ui.min.js"></script>
     <script src="colorbrewer.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhBRV_S71WiAX-_8ZYvPdH9MzO8fnb7uY"></script>
     <style type="text/css">
@@ -59,7 +62,14 @@ path.link {
               <li><a class="boro active" onclick='javascript:toggleQN()'>Queens</a></li>
               <li><a class="boro active" onclick='javascript:toggleSI()'>Staten Island</a></li>
             </ul>
-          </div><!-- /.navbar-collapse -->
+            <div class="searchbar">
+              <div class="ui-widget">
+                <input id="tags" placeholder="Search for a Facility or Category" >
+                
+              </div>
+            </div>
+          </div>
+          
         </div><!-- /.container-fluid -->
       </nav>
       <div id="facWindow">
@@ -81,6 +91,8 @@ path.link {
     $('.boro:not(#all)').click(function() {
       $(this).toggleClass('active');
     })
+
+  
 
 d3.selection.prototype.moveToBack = function() { 
     return this.each(function() { 
@@ -108,7 +120,7 @@ var maxDepth = 4,
   boroughs = ['BK', 'MN', 'BX', 'QN', 'SI'];
   currBoroughs = ['BK', 'MN', 'BX', 'QN', 'SI'];
 
-var levelWidth;
+var levelWidth, inp;
 
 function initMap() {
   console.log("initializing map");
@@ -149,8 +161,29 @@ d3.json("SFPSDparsedattr.json", function(json) {
 
   update(root);
 
+$(function() {
+    var availableTags = [];
+
+    visit(root, function(d) {
+        availableTags.push(d.name);
+
+    }, function(d) {
+        if (d.children && d.children.length > 0) {
+          return d.children; 
+        } else if (d._children && d._children.length > 0) {
+          return d._children;
+        }
+    });
+    $( "#tags" ).autocomplete({
+      source: availableTags,
+      appendTo: ".searchbar",
+      select: function(event, input) {startSearch(input.item.value);}
+    });
+  });
   
 });
+
+
 
 function toggleAll(d) {
     if (d.children) {
@@ -254,7 +287,6 @@ function update(source) {
           var windowh = window.innerHeight
             || document.documentElement.clientHeight
             || document.body.clientHeight;
-          console.log(d.x - windowh/2);
           d.children || d._children ? window.scroll(0, d.x - windowh/2) : null;
         }
       })
@@ -276,8 +308,7 @@ function update(source) {
             //.insertBefore()
             .style("fill", "white")
             .moveToBack();
-        }
-        
+        }  
         
         //d.depth < (maxDepth-1) && d.descend > 0 ? openPie(d) : null;
       })
@@ -526,6 +557,8 @@ function numDescend(node) {
     });
   return totDescend;
 }
+
+
 //
 //functions to execute search
 //
@@ -568,6 +601,7 @@ function findFacility(facility, node) {
 
 function openTree(foundCoord) {
   var curr = root;
+  //console.log(curr);
   while (foundCoord.length > 0) {
     var index = foundCoord.pop();
     if (curr.children == null) {
@@ -576,16 +610,25 @@ function openTree(foundCoord) {
       curr = curr.children[index];
     }
     
-    toggle(curr);
+    if (curr.children || curr._children) { 
+      toggle(curr) 
+    } else {
+      openMap(curr);
+      var windowh = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+      window.scroll(0, curr.x - windowh/2);
+    }
   }
   update(root);
 }
 
-function startSearch() {
+function startSearch(fac) {
   foundCoord = [];
   found = false;
   console.log("starting search");
-  var toFind = (document.getElementById('inputFac').value).toLowerCase();
+  //var toFind = (document.getElementById('tags').value).toLowerCase();
+  var toFind = fac.toLowerCase();
   console.log(toFind);
   findFacility(toFind, root);
   console.log("foundCoord: " + foundCoord);
@@ -737,7 +780,7 @@ function toggleSI() {
 function toggleQN() {
   toggleBorough('QN');
 }
-
+/*
 function drawPie(fac) {
   var data = fac.children ? fac.children : fac._children;
   
@@ -798,12 +841,10 @@ function drawPie(fac) {
         .style("text-anchor", "middle")
         .style("font-size", "8px")
         .text(function(d) { return d.data.name; }); 
-  
-  
 }
 
   
-/*
+
 $(".long").mouseover(function() {
     console.log("scrolling");
     //$(this).removeClass("ellipsis");
