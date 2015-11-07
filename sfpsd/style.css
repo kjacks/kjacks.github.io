@@ -1,3 +1,7 @@
+var selectColor = rgb(219,105,27),
+  hoverColor = "rgb(0,68,104)",
+  primaryColor = "rgb(0,68,104)";
+
 body {
   /*background: url(texture-noise.png);*/
   /*overflow: hidden;*/
@@ -233,6 +237,20 @@ a:hover {
 .searchbar {
   padding-left: 715px;
   padding-top: 24px;
+}
+
+text.default {
+  font-weight: normal;
+  fill: rgb(0,68,104);
+}
+
+text.selected {
+  font-weight: bold;
+  fill: rgb(219,105,27);
+}
+
+.ui-helper-hidden-accessible {
+  display:none;
 }
 
 .ui-autocomplete {
