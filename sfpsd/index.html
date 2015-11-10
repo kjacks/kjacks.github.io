@@ -61,6 +61,8 @@ path.link {
               <li><a class="boro active" >Bronx</a></li>
               <li><a class="boro active" >Queens</a></li>
               <li><a class="boro active" >Staten Island</a></li>
+            
+              
             </ul>
             <div class="searchbar">
               <div class="ui-widget">
@@ -84,8 +86,9 @@ path.link {
       <div id="pieContainer">
         <div id="catName"></div>
       </div>
-        
+      
     </div>
+    <div id="source"> Created by Kirk Jackson, 2015 -   Data Source:       </div>
     <script type="text/javascript">
     initMap();
 
@@ -141,6 +144,7 @@ var maxDepth = 4,
   map,
   marker,
   infowindow,
+  facOpened,
   labelCutoff = 35,
   selectColor = "rgb(219,105,27)",
   hoverColor = "rgb(0,68,104)",
@@ -168,15 +172,20 @@ var diagonal = d3.svg.diagonal()
 
 d3.select("#body:not(#facWindow)").on("click", function() { 
      /*
-      currFac = d3.select("#facOpened");
-      console.log();
-      if(currFac[0] != null) { 
-        currFac.select("text").attr("class") == "selected" ? currFac.select("text").classed("selected", false).classed("default", true) : null;
+      var currSelected = d3.selectAll("#facOpened");
+      console.log(currSelected);
+      if(currSelected[0].length > 1) { 
+        var currFac = d3.select(currSelected[0][1]).select("text");
+        console.log(currFac);
+        currFac.attr("class") == "selected" ? currFac.classed("selected", false).classed("default", true) : null;
+        currFac.attr("id", null);
       }
-      //currFac.attr("id", null);
       */
+      
       document.getElementById('facWindow').style.visibility = "hidden";
     });
+
+
 
 var vis = d3.select("#body").append("svg:svg")
     .attr("width", w + m[1] + m[3])
@@ -318,9 +327,10 @@ function update(source) {
         if (d.children || d._children) { 
           toggle(d) 
         } else {
-          
+          facOpened ? facOpened.select("text").classed("selected", false).classed("default", true) : null;
+          facOpened = d3.select(this);
+          facOpened.select("text").classed("selected", true).classed("default", false);
           openMap(d); 
-          d3.select(this).attr("id","facOpened");
         }
         update(d);
         

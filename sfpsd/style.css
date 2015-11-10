@@ -262,6 +262,13 @@ text.selected {
   overflow: scroll;
 }
 
+#source {
+  font-style: italic;
+  font-size: 10px;
+  color:rgb(0,68,104);
+  position: relative;
+  margin-left: 20px;
+}
 
 #all {
   font-weight: bold;
