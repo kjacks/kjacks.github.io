@@ -109,6 +109,7 @@ a:hover {
   font-size: 12px;
   background-color:white;
   border-color: white;
+  overflow:visible;
 }
 
 .navbar-default .nav.navbar-default .navbar-nav>li>a:focus, .navbar-default .navbar-nav>li>a:hover {
@@ -250,16 +251,26 @@ text.selected {
 }
 
 .ui-helper-hidden-accessible {
-  display:none;
+  display:hidden;
 }
 
 .ui-autocomplete {
   font-weight: normal;
+  padding: 0px;
   left: 800px;
   height: 100px;
   width: 300px;
   font-size: 10px;
+  position:absolute;
   overflow: scroll;
+}
+
+.ui-menu-item {
+  cursor:pointer;
+}
+
+.ui-state-focus {
+  color: rgb(219,105,27);
 }
 
 #source {

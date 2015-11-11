@@ -119,8 +119,7 @@ path.link {
         currBoroughs = boroughs;
       }
       update(root);
-    })
-
+    });
   
 
 d3.selection.prototype.moveToBack = function() { 
@@ -292,6 +291,7 @@ function update(source) {
         d.x = d.x - offset[d.depth];
       }
     }
+
     /*
     //if overlap found and name is long and is not a leaf, offset
     if (findOverlap(d) && d.name.length > 27 && d.depth != maxDepth) {
@@ -315,7 +315,17 @@ function update(source) {
   // Enter any new nodes at the parent's previous position.
   var nodeEnter = node.enter().append("svg:g")
       .attr("class", "node")
-      .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+      .attr("transform", function(d) {
+       return "translate(" + source.y0 + "," + source.x0 + ")"; })
+      /*.attr("fill", function(d) {
+        if(d.opened) {
+          facOpened ? facOpened.select("text").classed("selected", false).classed("default", true) : null;
+          facOpened = d3.select(this);
+          console.log(facOpened);
+          facOpened.select("text").classed("selected", true).classed("default", false);
+        }
+        return null;})
+      */
       .on("click", function(d) {
         if (d.children == null) {
           d3.select(this).select("text").attr("class", "selected");
@@ -329,6 +339,7 @@ function update(source) {
         } else {
           facOpened ? facOpened.select("text").classed("selected", false).classed("default", true) : null;
           facOpened = d3.select(this);
+          console.log(facOpened);
           facOpened.select("text").classed("selected", true).classed("default", false);
           openMap(d); 
         }
@@ -339,7 +350,7 @@ function update(source) {
           var windowh = window.innerHeight
             || document.documentElement.clientHeight
             || document.body.clientHeight;
-          d.children || d._children ? window.scroll(0, d.x - windowh/2) : null;
+          //d.children || d._children ? window.scroll(0, d.x - windowh/2) : null;
         }
       })
       .on("mouseover", function(d) { 
@@ -665,6 +676,8 @@ function openTree(foundCoord) {
       toggle(curr) 
     } else {
       openMap(curr);
+      console.log(curr);
+      curr.opened = true;
       var windowh = window.innerHeight
             || document.documentElement.clientHeight
             || document.body.clientHeight;
