@@ -126,13 +126,8 @@ a:hover {
   border-radius: 3px;
 }
 
-.dropdown {
-  padding-top: 12px;
-}
 
-a.btn {
-  background-color:rgb(0,68,104);
-}
+
 
 
 .navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>.active>a:focus, .navbar-default .navbar-nav>.active>a:hover {
@@ -165,56 +160,11 @@ a.btn {
   text-shadow: 0 1px 0 #fff;
 }
 
-.dropdown-submenu {
-    position: relative;
-
-}
-
-.dropdown-submenu>.dropdown-menu {
-    top: 0;
-    left: 100%;
-    margin-top: -6px;
-    margin-left: -1px;
-    -webkit-border-radius: 0 6px 6px 6px;
-    -moz-border-radius: 0 6px 6px;
-    border-radius: 0 6px 6px 6px;
-    max-height: 200px;
-    max-width:300px;
-    overflow:scroll;
-}
-
-.dropdown-submenu:hover>.dropdown-menu {
-    display: block;
-}
-
-.dropdown-submenu>a:after {
-    display: block;
-    content: " ";
-    float: right;
-    width: 0;
-    height: 0;
-    border-color: transparent;
-    border-style: solid;
-    border-width: 5px 0 5px 5px;
-    border-left-color: #ccc;
-    margin-top: 5px;
-    margin-right: -10px;
-}
-
-.dropdown-submenu:hover>a:after {
-    border-left-color: #fff;
-}
-
-.dropdown-submenu.pull-left {
-    float: none;
-}
-
-.dropdown-submenu.pull-left>.dropdown-menu {
-    left: -100%;
-    margin-left: 10px;
-    -webkit-border-radius: 6px 0 6px 6px;
-    -moz-border-radius: 6px 0 6px 6px;
-    border-radius: 6px 0 6px 6px;
+.boro {
+  color:rgb(0,68,104);
+  box-shadow: 0px 0px 2px rgb(0,68,104);
+  border-radius: 3px;
+  background-color:white;
 }
 
 .active {

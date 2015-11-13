@@ -2,13 +2,14 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    
+    
     <link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="style.css"/>
     <script type="text/javascript" src="d3/d3.js"></script>
     <script type="text/javascript" src="d3/d3.layout.js"></script>
     <script type="text/javascript" src="jquery-2.1.4.min.js"></script>
     <script type="text/javascript" src="jquery-ui.min.js"></script>
-    <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
     <script src="colorbrewer.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhBRV_S71WiAX-_8ZYvPdH9MzO8fnb7uY"></script>
     <style type="text/css">
@@ -53,47 +54,15 @@ path.link {
           <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
-             <li> 
-              <div class="dropdown">
-                  <a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#">
-                      Filter <span class="caret"></span>
-                  </a>
-                <ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">
-                    <li class="dropdown-header">Filter Facilities by:</li>
-                    <li class="dropdown-submenu">
-                      <a tabindex="-1" href="#">Borough</a>
-                      <ul class="dropdown-menu">
-                        <li><a href="#" class="small boro" data-value="BK" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Brooklyn</a></li>
-                        <li><a href="#" class="small boro" data-value="BX" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Bronx</a></li>
-                        <li><a href="#" class="small boro" data-value="MN" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Manhattan</a></li>
-                        <li><a href="#" class="small boro" data-value="QN" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Queens</a></li>
-                        <li><a href="#" class="small boro" data-value="SI" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Staten Island</a></li>
-                      </ul>
-                    </li>
-                    <li class="dropdown-submenu">
-                      <a tabindex="-1" href="#">Operating Agency</a>
-                      <ul class="dropdown-menu" id="agencyOper">
-                      </ul>
-                    </li>
-                    <li class="dropdown-submenu">
-                      <a tabindex="-1" href="#">Overseeing Agency</a>
-                      <ul class="dropdown-menu" id="agencyOver">
-                      </ul>
-                    </li>
-                    <li class="dropdown-submenu">
-                      <a tabindex="-1" href="#">Age Cohort</a>
-                      <ul class="dropdown-menu">
-                        <li><a href="#" class="small age" data-value="C" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Children</a></li>
-                        <li><a href="#" class="small age" data-value="Y" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Youth</a></li>
-                        <li><a href="#" class="small age" data-value="A" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Adult</a></li>
-                        <li><a href="#" class="small age" data-value="S" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Senior</a></li>
-                        <li><a href="#" class="small age" data-value="F" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Family</a></li>
-                      </ul>
-                    </li>
-                  </ul>
-              </div>
+              <li class="navbar-text" id= "prompt">Select Boroughs to Display: </li>
+              <li><a class="boro active" id="all" >All NYC</a></li>
+              <li><a class="boro active" >Manhattan</a></li>
+              <li><a class="boro active" >Brooklyn</a></li>
+              <li><a class="boro active" >Bronx</a></li>
+              <li><a class="boro active" >Queens</a></li>
+              <li><a class="boro active" >Staten Island</a></li>
             
-             </li>
+              
             </ul>
             <div class="searchbar">
               <div class="ui-widget">
@@ -120,9 +89,38 @@ path.link {
       
     </div>
     <div id="source"> Created by Kirk Jackson, 2015 -   Data Source:       </div>
-   
     <script type="text/javascript">
     initMap();
+
+    $('.boro:not(#all)').click(function() {
+      var allToggled = false;
+      if($("#all").hasClass('active')) {
+        console.log("here");
+        allToggled = true;
+        $(".boro").toggleClass('active');
+        $(this).toggleClass('active');
+      } else {
+        allToggled = false;
+        console.log("there");
+        $(this).toggleClass('active');
+      }
+
+      toggleBorough(boroughCode(this.text), allToggled);
+    })
+
+    $('#all').click(function() {
+      if ($("#all").hasClass('active')) {
+        $("#all").toggleClass('active');
+        $(".boro").removeClass('active');
+        currBoroughs = [];
+        
+      } else {
+        $(".boro").addClass('active');
+        currBoroughs = boroughs;
+      }
+      update(root);
+    });
+  
 
 d3.selection.prototype.moveToBack = function() { 
     return this.each(function() { 
@@ -150,12 +148,8 @@ var maxDepth = 4,
   selectColor = "rgb(219,105,27)",
   hoverColor = "rgb(0,68,104)",
   primaryColor = "rgb(0,68,104)",
-  currFilters = {
-    boro : ['BK','BX','MN','QN','SI'],
-    agency_oper : [],
-    agency_over : [],
-    age : []
-  };
+  boroughs = ['BK', 'MN', 'BX', 'QN', 'SI'];
+  currBoroughs = ['BK', 'MN', 'BX', 'QN', 'SI'];
 
 var levelWidth, inp;
 
@@ -198,23 +192,24 @@ var vis = d3.select("#body").append("svg:svg")
   .append("svg:g")
     .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
 
-d3.json("SFPSDparsedattr1.json", function(json) {
+d3.json("SFPSDparsedattr.json", function(json) {
   root = json;
   root.x0 = h / 2;
   root.y0 = 0;
   
-  
+  orderChildren(root);
+
+  root.children.forEach(toggleAll);
+
+  maxDescend = numDescend(root);
+
+  update(root);
 
 $(function() {
     var availableTags = [];
-    var agency_over = new Set();
-    var agency_oper = new Set();
 
     visit(root, function(d) {
-        
         availableTags.push(d.name);
-        d.children || d._children ? null : agency_over.add(d.attr.NewAgencyOver_Decode);
-        d.children || d._children ? null : agency_oper.add(d.attr.NewAgencyOper_Decode);
 
     }, function(d) {
         if (d.children && d.children.length > 0) {
@@ -223,78 +218,14 @@ $(function() {
           return d._children;
         }
     });
-    
     $( "#tags" ).autocomplete({
       source: availableTags,
       appendTo: ".searchbar",
       select: function(event, input) {startSearch(input.item.value);}
     });
-
-    agency_over.forEach(function(a) {
-      $('#agencyOver').append("<li><a href='#' class='small agency_over' data-value='" + a + "' tabIndex='-1'><input type='checkbox' checked='true'/>&nbsp;" + a + "</a></li>");
-      currFilters.agency_over.push(a);
-    }); 
-
-    agency_oper.forEach(function(a) {
-      $('#agencyOper').append("<li><a href='#' class='small agency_oper' data-value='" + a + "' tabIndex='-1'><input type='checkbox' checked='true'/>&nbsp;" + a + "</a></li>");
-      currFilters.agency_oper.push(a);
-    });
   });
-
-      
-
-      $( '.dropdown-menu a' ).on( 'click', function( event ) {
-        var whichFilter = $(this).attr("class").slice(6);
-        console.log(whichFilter);
-        var filterChanged;
-        switch(whichFilter) {
-          case "boro":
-            filterChanged = currFilters.boro;
-            break;
-          case "agency_oper":
-            filterChanged = currFilters.agency_oper;
-            break;
-          case "agency_over":
-            filterChanged = currFilters.agency_over;
-            break;
-          case "age":
-            filterChanged = currFilters.age;
-            break;
-        }
-
-        console.log(whichFilter);
-
-         var $target = $( event.currentTarget ),
-             val = $target.attr( 'data-value' ),
-             $inp = $target.find( 'input' ),
-             idx;
-
-         if ( ( idx = filterChanged.indexOf( val ) ) > -1 ) {
-            filterChanged.splice( idx, 1 );
-            setTimeout( function() { $inp.prop( 'checked', false ) }, 0);
-         } else {
-            filterChanged.push( val );
-            setTimeout( function() { $inp.prop( 'checked', true ) }, 0);
-         }
-
-         $( event.target ).blur();
-            
-         console.log( currFilters );
-         update(root);
-         return false;
-      });
-
-  orderChildren(root);
-
-  root.children.forEach(toggleAll);
-
-  maxDescend = numDescend(root);
-
-  update(root);
   
 });
-
-
 
 
 
@@ -356,7 +287,7 @@ function update(source) {
         
         offset[d.depth] += radius * (offset[d.depth] == 0 ? 1 : 2);
         //d.x = d.x - d.offset;
-        //console.log(offset[d.depth]);
+        console.log(offset[d.depth]);
         d.x = d.x - offset[d.depth];
       }
     }
@@ -583,7 +514,7 @@ function toggle(d) {
     d.children = [];
     for (var i = 0; i < d._children.length; i++) {
       if(d._children[i].hasOwnProperty('attr')) {
-        if(checkFilters(d._children[i])) {
+        if(currBoroughs.indexOf(d._children[i].attr.Borough) >= 0) {
           d.children.push(d._children[i]);
         } else {
           //console.log(d._children[i]);
@@ -599,24 +530,7 @@ function toggle(d) {
     d._children = null;
   }
 
-}
 
-function isIn(value, array) {
-  //console.log(value);
-  //console.log(array);
-  return array.indexOf(value) > -1;
-}
-
-function checkFilters(fac) {
-
-  if (isIn(String(fac.attr.Borough), currFilters.boro) &&
-    isIn(String(fac.attr.NewAgencyOper_Decode), currFilters.agency_oper) &&
-    isIn(String(fac.attr.NewAgencyOver_Decode), currFilters.agency_over)) {
-    //ADD AGE COHORT TOO
-    return true;
-  } else {
-    return false;
-  }
 }
 
 //calculates level with max number of nodes open, stores currently open nodes for each level in levelWidth array
@@ -695,8 +609,7 @@ function numDescend(node) {
   visit(node, function(d) {
         //console.log(d);
         if(!(d.children || d._children)) {
-          //FIX THIS!
-          if(checkFilters(d)) {
+          if(currBoroughs.indexOf(d.attr.Borough) >= 0) {
             totDescend++;
           }
         }
@@ -877,7 +790,7 @@ function arraysEqual(a, b) {
     return false;
   }
 }
-/*
+
 function toggleBorough(b, allToggled) {
   
   if (allToggled) {
@@ -926,7 +839,6 @@ function boroughCode(borough) {
       break;
   }
 }
-*/
 /*
 function drawPie(fac) {
   var data = fac.children ? fac.children : fac._children;
