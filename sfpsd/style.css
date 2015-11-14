@@ -286,8 +286,13 @@ a.btn {
 }
 
 .searchbar {
-  padding-left: 715px;
-  padding-top: 24px;
+  padding-left: 500px;
+  padding-top: 20px;
+  
+}
+
+.ui-autocomplete-input {
+  width: 300px;
 }
 
 text.default {
@@ -323,7 +328,7 @@ text.selected {
   color: rgb(219,105,27);
 }
 
-#source {
+.source {
   font-style: italic;
   font-size: 10px;
   color:rgb(0,68,104);

@@ -56,7 +56,7 @@ path.link {
              <li> 
               <div class="dropdown">
                   <a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#">
-                      Filter <span class="caret"></span>
+                      Filter by Attribute <span class="caret"></span>
                   </a>
                 <ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">
                     <li class="dropdown-header">Filter Facilities by:</li>
@@ -98,7 +98,6 @@ path.link {
             <div class="searchbar">
               <div class="ui-widget">
                 <input id="tags" placeholder="Search for a Facility or Category" >
-                
               </div>
             </div>
           </div>
@@ -119,10 +118,12 @@ path.link {
       </div>
       
     </div>
-    <div id="source"> Created by Kirk Jackson, 2015 -   Data Source:       </div>
+    <div class="source"> Created by Kirk Jackson, 2015 -   Data Source:       </div>
    
     <script type="text/javascript">
     initMap();
+
+$(".ui-autocomplete").append("<li class='dropdown-header'>Select from Below:</li>");
 
 d3.selection.prototype.moveToBack = function() { 
     return this.each(function() { 
@@ -147,6 +148,7 @@ var maxDepth = 4,
   infowindow,
   facOpened,
   labelCutoff = 35,
+  searchableFac = [],
   selectColor = "rgb(219,105,27)",
   hoverColor = "rgb(0,68,104)",
   primaryColor = "rgb(0,68,104)",
@@ -203,16 +205,30 @@ d3.json("SFPSDparsedattr1.json", function(json) {
   root.x0 = h / 2;
   root.y0 = 0;
   
-  
+function findSearchableFac() {
+  console.log("finding searchable facilities");
+  searchableFac = [];
+
+  visit(root, function(d) {
+        if(d.children || d._children) {
+          searchableFac.push(d.name)
+        } else {
+          checkFilters(d) ? searchableFac.push(d.name) : null;
+        }
+    }, function(d) {
+        if (d.children && d.children.length > 0) {
+          return d.children; 
+        } else if (d._children && d._children.length > 0) {
+          return d._children;
+        }
+    });
+}
 
 $(function() {
-    var availableTags = [];
     var agency_over = new Set();
     var agency_oper = new Set();
 
     visit(root, function(d) {
-        
-        availableTags.push(d.name);
         d.children || d._children ? null : agency_over.add(d.attr.NewAgencyOver_Decode);
         d.children || d._children ? null : agency_oper.add(d.attr.NewAgencyOper_Decode);
 
@@ -223,12 +239,10 @@ $(function() {
           return d._children;
         }
     });
+
     
-    $( "#tags" ).autocomplete({
-      source: availableTags,
-      appendTo: ".searchbar",
-      select: function(event, input) {startSearch(input.item.value);}
-    });
+    
+    
 
     agency_over.forEach(function(a) {
       $('#agencyOver').append("<li><a href='#' class='small agency_over' data-value='" + a + "' tabIndex='-1'><input type='checkbox' checked='true'/>&nbsp;" + a + "</a></li>");
@@ -238,6 +252,14 @@ $(function() {
     agency_oper.forEach(function(a) {
       $('#agencyOper').append("<li><a href='#' class='small agency_oper' data-value='" + a + "' tabIndex='-1'><input type='checkbox' checked='true'/>&nbsp;" + a + "</a></li>");
       currFilters.agency_oper.push(a);
+    });
+
+    findSearchableFac();
+
+    $( "#tags" ).autocomplete({
+      source: searchableFac,
+      appendTo: ".searchbar",
+      select: function(event, input) {startSearch(input.item.value);}
     });
   });
 
@@ -280,7 +302,19 @@ $(function() {
          $( event.target ).blur();
             
          console.log( currFilters );
+
+         tree.nodes(root).reverse().forEach(function(d) {
+            if(d.depth == (maxDepth - 1) && d.children || d.hidden_children) {
+              toggle(d);
+              toggle(d);
+            }
+          });
+
          update(root);
+         findSearchableFac();
+         $( "#tags" ).autocomplete({
+            source: searchableFac 
+          });
          return false;
       });
 
@@ -293,10 +327,6 @@ $(function() {
   update(root);
   
 });
-
-
-
-
 
 function toggleAll(d) {
     if (d.children) {
@@ -503,7 +533,8 @@ function update(source) {
       .style("stroke", "none");
 
   nodeUpdate.select("text")
-      .style("fill-opacity", 1);
+      .style("fill-opacity", 1)
+      .attr("class", function(d) {return d.children ? "selected" : "default";});
 
   nodeUpdate.select(".desc")
     .text(function(d) {
@@ -750,18 +781,40 @@ function findFacility(facility, node) {
 
 function openTree(foundCoord) {
   var curr = root;
-  //console.log(curr);
+  console.log(foundCoord);
   while (foundCoord.length > 0) {
     var index = foundCoord.pop();
+
+    if (curr.children) {
+      curr = curr.children[index];
+    } else if (curr._children) {
+      toggle(curr);
+      curr = curr.children[index];
+    }
+
+    if (foundCoord.length == 0 && !(curr.children || curr._children)) {
+      openMap(curr);
+      console.log(curr);
+      curr.opened = true;
+      var windowh = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+      window.scroll(0, curr.x - windowh/2);
+    }
+  }
+    update(root);
+
+/*
     if (curr.children == null) {
       curr = curr._children[index];
     } else {
       curr = curr.children[index];
     }
     
-    if (curr.children || curr._children) { 
-      toggle(curr) 
-    } else {
+    if (curr._children) { 
+      toggle(curr); 
+      update(curr);
+    } else if (!(curr.children || curr._children)){
       openMap(curr);
       console.log(curr);
       curr.opened = true;
@@ -772,6 +825,7 @@ function openTree(foundCoord) {
     }
   }
   update(root);
+*/
 }
 
 function startSearch(fac) {
@@ -789,8 +843,10 @@ function startSearch(fac) {
     console.log("opening tree");
     openTree(foundCoord);
   }
-}
 
+  $("searchbar.ui-widget.input").val('');
+}
+/*
 function openPie(fac) {
   //console.log(fac);
   drawPie(fac);
@@ -801,7 +857,7 @@ function openPie(fac) {
   document.getElementById('pieContainer').style.left = (fac.y + 90) + "px";
 
 }
-
+*/
 function openMap(fac) {
   console.log(fac);
   //window.open("http://maps.google.com?q=" + fac.name);
