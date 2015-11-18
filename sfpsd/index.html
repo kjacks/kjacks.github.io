@@ -9,37 +9,12 @@
     <script type="text/javascript" src="jquery-2.1.4.min.js"></script>
     <script type="text/javascript" src="jquery-ui.min.js"></script>
     <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
-    <script src="colorbrewer.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhBRV_S71WiAX-_8ZYvPdH9MzO8fnb7uY"></script>
-    <style type="text/css">
-
-
-.node circle {
-  cursor: pointer;
-  fill: rgb(0,68,104);
-  stroke: rgb(0,68,104);
-  stroke-width: 1.5px;
-}
-
-.node text {
-  cursor: pointer;
-  font-size: 11px;
-}
-
-path.link {
-  fill: none;
-  stroke: #f4f4f4;
-  stroke-width: 1.5px;
-}
-
-    </style>
   </head>
   <body>
     <div id="body">
-      
       <nav class="navbar navbar-default navbar-fixed-top">
         <div class="container-fluid">
-          <!-- Brand and toggle get grouped for better mobile display -->
           <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
               <span class="sr-only">Toggle navigation</span>
@@ -50,7 +25,6 @@ path.link {
             <span class="navbar-text" >New York City Facilities</span>
           </div>
 
-          <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
              <li> 
@@ -63,6 +37,7 @@ path.link {
                     <li class="dropdown-submenu">
                       <a tabindex="-1" href="#">Borough</a>
                       <ul class="dropdown-menu">
+                        
                         <li><a href="#" class="small boro" data-value="BK" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Brooklyn</a></li>
                         <li><a href="#" class="small boro" data-value="BX" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Bronx</a></li>
                         <li><a href="#" class="small boro" data-value="MN" tabIndex="-1"><input type="checkbox" checked="true"/>&nbsp;Manhattan</a></li>
@@ -92,7 +67,6 @@ path.link {
                     </li>
                   </ul>
               </div>
-            
              </li>
             </ul>
             <div class="searchbar">
@@ -100,10 +74,10 @@ path.link {
                 <input id="tags" placeholder="Search for a Facility or Category" >
               </div>
             </div>
-          </div>
-          
+          </div> 
         </div><!-- /.container-fluid -->
       </nav>
+
       <div id="facWindow">
         <div id="facName"></div>
         <div id="map"></div>
@@ -112,499 +86,347 @@ path.link {
           <li></li>
         </ul>
       </div>
-
-      <div id="pieContainer">
-        <div id="catName"></div>
-      </div>
       
     </div>
     <div class="source"> Created by Kirk Jackson, 2015 -   Data Source:       </div>
    
     <script type="text/javascript">
+    
+  //GLOBAL VARIABLES
+
+    //sets dimensions and margins of svg
+    var m = [50, 120, 20, 85],
+        w = 1280 - m[1] - m[3],
+        h = 800 - m[0] - m[2],
+        i = 0,
+        root;
+
+    var selectColor = "rgb(219,105,27)",
+      primaryColor = "rgb(0,68,104)";
+
+    //maximum depth of the tree, used to determine if node is leaf, FUTURE:should use a function to set
+    var maxDepth = 4;
+
+    //maximum descendents of any node (will always be the root) - used to determine max node size for scaling
+    var maxDescend = 0;
+    
+    //used to add ... to long labels, build background rectangle
+    var labelCutoff = 35;
+
+    //stores facility opened by search
+    var openedId = 0;
+
+    //array of all facilities and categories searchable according to current filters - updated whenever filter changed
+    var searchableFac = [];
+
+    //stores filters that are currently toggled
+    var currFilters = {
+      boro : ['BK','BX','MN','QN','SI'],
+      agency_oper : [],
+      agency_over : [],
+      age : []
+    };
+
+    var filterTot = {
+      boro : 5,
+      agency_oper : 0,
+      agency_over : 0,
+      age : 0
+    };
+
+    var allFilters = {
+      boro : ['BK','BX','MN','QN','SI'],
+      agency_oper : [],
+      agency_over : [],
+      age : []
+    };
+
+    //array with number of nodes open at each level
+    var levelWidth;
+    
+    //map variables
+    var map,
+      marker,
+      infowindow;
+
+  //SETUP FUNCTIONS
+
+    //initializes google maps instance
     initMap();
 
-$(".ui-autocomplete").append("<li class='dropdown-header'>Select from Below:</li>");
+    var tree = d3.layout.tree()
+        .size([h, w]);
 
-d3.selection.prototype.moveToBack = function() { 
-    return this.each(function() { 
-        var firstChild = this.parentNode.firstChild; 
-        if (firstChild) { 
-            this.parentNode.insertBefore(this, firstChild); 
-        } 
-    }); 
-};
-//set dimensions and margins
-var m = [50, 120, 20, 85],
-    w = 1280 - m[1] - m[3],
-    h = 800 - m[0] - m[2],
-    i = 0,
-    root;
+    var diagonal = d3.svg.diagonal()
+        .projection(function(d) { return [d.y, d.x]; });
 
-//maximum depth of the tree, used to determine if node is leaf, FUTURE:should use a function to set
-var maxDepth = 4,
-  maxDescend = 0,
-  map,
-  marker,
-  infowindow,
-  facOpened,
-  labelCutoff = 35,
-  searchableFac = [],
-  selectColor = "rgb(219,105,27)",
-  hoverColor = "rgb(0,68,104)",
-  primaryColor = "rgb(0,68,104)",
-  currFilters = {
-    boro : ['BK','BX','MN','QN','SI'],
-    agency_oper : [],
-    agency_over : [],
-    age : []
-  };
+    var vis = d3.select("#body").append("svg:svg")
+        .attr("width", w + m[1] + m[3])
+        .attr("height", h + m[0] + m[2])
+      .append("svg:g")
+        .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
 
-var levelWidth, inp;
-
-function initMap() {
-  console.log("initializing map");
-  // Create a map object and specify the DOM element for display.
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: -40.7127, lng: 74.0059},
-    scrollwheel: true,
-    zoom: 15
-  });
-}
-
-var tree = d3.layout.tree()
-    .size([h, w]);
-
-var diagonal = d3.svg.diagonal()
-    .projection(function(d) { return [d.y, d.x]; });
-
-d3.select("#body:not(#facWindow)").on("click", function() { 
-     /*
-      var currSelected = d3.selectAll("#facOpened");
-      console.log(currSelected);
-      if(currSelected[0].length > 1) { 
-        var currFac = d3.select(currSelected[0][1]).select("text");
-        console.log(currFac);
-        currFac.attr("class") == "selected" ? currFac.classed("selected", false).classed("default", true) : null;
-        currFac.attr("id", null);
-      }
-      */
+    //Specify Data source here
+    d3.json("SFPSDparsedattr1.json", function(json) {
+      root = json;
+      root.x0 = h / 2;
+      root.y0 = 0;
       
-      document.getElementById('facWindow').style.visibility = "hidden";
-    });
+      findAgencies();
+      findSearchableFac();
 
+      //sets up autocomplete search
+      $( "#tags" ).autocomplete({
+        source: searchableFac,
+        appendTo: ".searchbar",
+        select: function(event, input) {startSearch(input.item.value);}
+      });      
 
+      //orders children of each node in descending order
+      orderChildren(root);
 
-var vis = d3.select("#body").append("svg:svg")
-    .attr("width", w + m[1] + m[3])
-    .attr("height", h + m[0] + m[2])
-  .append("svg:g")
-    .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+      //toggles initial display
+      root.children.forEach(toggleAll);
 
-d3.json("SFPSDparsedattr1.json", function(json) {
-  root = json;
-  root.x0 = h / 2;
-  root.y0 = 0;
+      maxDescend = numDescend(root);
+
+      update(root);
   
-function findSearchableFac() {
-  console.log("finding searchable facilities");
-  searchableFac = [];
+    });
 
-  visit(root, function(d) {
-        if(d.children || d._children) {
-          searchableFac.push(d.name)
-        } else {
-          checkFilters(d) ? searchableFac.push(d.name) : null;
+  //UPDATE
+
+    function update(source) {
+      console.log($(".opened"));
+      //stores current offset for each level to vertically space crowded nodes/labels
+      var offset = [0,0,0,0,0];
+      var duration = d3.event && d3.event.altKey ? 5000 : 500;
+
+      //scale to determine node radius
+      var radiusScale = d3.scale.log()
+                        .domain([1, maxDescend])
+                        .range([1, 30]);
+
+      //resizes svg if tree is too tall to fit 
+      resizeSvg();
+
+      // Computes the new tree layout.
+      var nodes = tree.nodes(root).reverse();
+
+      //sets y coordinates, counts descendants, offsets x coordinate to provide vertical spacing
+      nodes.forEach(function(d) {
+        d.y = d.depth * (d.depth == maxDepth ? 240 : 255);
+        d.descend = numDescend(d);
+        
+        //calculates offset for vertical spacing
+        var radius = d.descend > 0 ? radiusScale(d.descend) : 0;
+        if (d3.max(levelWidth) >= 50) {
+          if (d.depth != maxDepth) {
+            offset[d.depth] += radius * (offset[d.depth] == 0 ? 1 : 2);
+            //d.x = d.x - d.offset;
+            d.x = d.x - offset[d.depth];
+          }
         }
-    }, function(d) {
-        if (d.children && d.children.length > 0) {
-          return d.children; 
-        } else if (d._children && d._children.length > 0) {
-          return d._children;
-        }
-    });
-}
-
-$(function() {
-    var agency_over = new Set();
-    var agency_oper = new Set();
-
-    visit(root, function(d) {
-        d.children || d._children ? null : agency_over.add(d.attr.NewAgencyOver_Decode);
-        d.children || d._children ? null : agency_oper.add(d.attr.NewAgencyOper_Decode);
-
-    }, function(d) {
-        if (d.children && d.children.length > 0) {
-          return d.children; 
-        } else if (d._children && d._children.length > 0) {
-          return d._children;
-        }
-    });
-
-    
-    
-    
-
-    agency_over.forEach(function(a) {
-      $('#agencyOver').append("<li><a href='#' class='small agency_over' data-value='" + a + "' tabIndex='-1'><input type='checkbox' checked='true'/>&nbsp;" + a + "</a></li>");
-      currFilters.agency_over.push(a);
-    }); 
-
-    agency_oper.forEach(function(a) {
-      $('#agencyOper').append("<li><a href='#' class='small agency_oper' data-value='" + a + "' tabIndex='-1'><input type='checkbox' checked='true'/>&nbsp;" + a + "</a></li>");
-      currFilters.agency_oper.push(a);
-    });
-
-    findSearchableFac();
-
-    $( "#tags" ).autocomplete({
-      source: searchableFac,
-      appendTo: ".searchbar",
-      select: function(event, input) {startSearch(input.item.value);}
-    });
-  });
-
+      });
       
+      // Update the nodes…
+      var node = vis.selectAll("g.node")
+          .data(nodes, function(d) { return d.id || (d.id = ++i); });
 
-      $( '.dropdown-menu a' ).on( 'click', function( event ) {
-        var whichFilter = $(this).attr("class").slice(6);
-        console.log(whichFilter);
-        var filterChanged;
-        switch(whichFilter) {
-          case "boro":
-            filterChanged = currFilters.boro;
-            break;
-          case "agency_oper":
-            filterChanged = currFilters.agency_oper;
-            break;
-          case "agency_over":
-            filterChanged = currFilters.agency_over;
-            break;
-          case "age":
-            filterChanged = currFilters.age;
-            break;
-        }
-
-        console.log(whichFilter);
-
-         var $target = $( event.currentTarget ),
-             val = $target.attr( 'data-value' ),
-             $inp = $target.find( 'input' ),
-             idx;
-
-         if ( ( idx = filterChanged.indexOf( val ) ) > -1 ) {
-            filterChanged.splice( idx, 1 );
-            setTimeout( function() { $inp.prop( 'checked', false ) }, 0);
-         } else {
-            filterChanged.push( val );
-            setTimeout( function() { $inp.prop( 'checked', true ) }, 0);
-         }
-
-         $( event.target ).blur();
-            
-         console.log( currFilters );
-
-         tree.nodes(root).reverse().forEach(function(d) {
-            if(d.depth == (maxDepth - 1) && d.children || d.hidden_children) {
-              toggle(d);
-              toggle(d);
+      // Enter any new nodes at the parent's previous position.
+      var nodeEnter = node.enter().append("svg:g")
+          .attr("class", "node")
+          .attr("transform", function(d) {
+           return "translate(" + source.y0 + "," + source.x0 + ")"; })
+          /*.attr("fill", function(d) {
+            if(d.opened) {
+              facOpened ? facOpened.select("text").classed("selected", false).classed("default", true) : null;
+              facOpened = d3.select(this);
+              console.log(facOpened);
+              facOpened.select("text").classed("selected", true).classed("default", false);
             }
+            return null;})
+          */
+          .on("click", function(d) {
+            //if (d.children == null) {
+            
+
+            //} else {
+              //d3.select(this).select("text").attr("class", "default");
+            //}
+            //d.children || d._children ? toggle(d) : openMap(d); 
+            var svgh = d3.select("svg").attr("height");
+            if (d.children || d._children) { 
+              d3.select(this).select("text").attr("class", "selected");
+              toggle(d) 
+            } else {
+              openedId += 1;
+              d.opened = openedId;
+              /*
+              facOpened ? facOpened.select("text").classed("selected", false).classed("default", true) : null;
+              facOpened = d3.select(this);
+              console.log(facOpened);
+              d3.select(this).select("g").select("text").classed("selected", true).classed("default", false);
+              */
+              openMap(d); 
+            }
+            update(d);
+            
+            var newsvgh = d3.select("svg").attr("height");
+            if (svgh != newsvgh) {
+              var windowh = window.innerHeight
+                || document.documentElement.clientHeight
+                || document.body.clientHeight;
+              //d.children || d._children ? window.scroll(0, d.x - windowh/2) : null;
+            }
+          })
+          .on("mouseover", function(d) { 
+            //d3.select(this).select("text").attr("fill", function(d) {return d.children ?  selectColor : hoverColor;});
+            d3.select(this).select("text").classed("default", false);
+            d3.select(this).select("text").classed("hovered", function(d) {
+              return d.children ? false : true;
+            })
+            d3.select(this).select("text").text(function(d) {return d.name;});
+            if (d.name.length > labelCutoff) {
+              var xpadding = 4,
+                  ypadding = 2,
+                  defaultH = 12;
+              var bbox = this.getBBox();
+              
+              var rect = d3.select(this).append("rect")
+                .attr("x", bbox.x - xpadding)
+                .attr("y", bbox.y + bbox.height/2 - defaultH/2 )
+                .attr("width", (bbox.width - 15) + (xpadding * 2))
+                .attr("height", defaultH)
+                //.insertBefore()
+                .style("fill", "white")
+                .moveToBack();
+            }  
+            
+            //d.depth < (maxDepth-1) && d.descend > 0 ? openPie(d) : null;
+          })
+          .on("mouseout", function(d) {
+            d3.select("rect").remove();  
+            //d3.select(this).select("text").attr("fill", function(d) {return d.children ? selectColor : primaryColor;});
+            //d3.select(this).select("text").attr("font-weight", function(d) {return d.children ? "bold" : "normal";});
+            d3.select(this).select("text").classed("hovered", false);
+            d3.select(this).select("text").attr("class", function(d) { return d.children || d.opened == openedId ? "selected" : "default"});
+            d3.select(this).select("text").text(function(d) 
+              {return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
+            //document.getElementById('pieContainer').style.visibility = "hidden";
+            //$("#pieContainer").find("svg").remove("*");
+            
+            
+            //d.children || d._children ? null : document.getElementById('map').style.visibility = "hidden";
+            
           });
 
-         update(root);
-         findSearchableFac();
-         $( "#tags" ).autocomplete({
-            source: searchableFac 
-          });
-         return false;
+      nodeEnter.append("svg:circle")
+          .attr("r", 1e-6)
+          .style("fill", function(d) { return (d._children || d.depth == maxDepth) ? primaryColor : selectColor; });
+
+      nodeEnter.append("svg:text")
+          .attr("x", function(d) {
+            var offset = 7 + (d.descend > 0 ? radiusScale(d.descend) : 0);
+            return offset * (d.children || d._children ? -1 : 1); })
+          .attr("dy", ".35em")
+          .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+          .attr("class", function(d) {return d.children ? "selected" : "default";})
+          .text(function(d) {
+            return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
+          .style("fill-opacity", 1e-6);
+
+      nodeEnter.append("svg:text")
+          .attr("class", "desc")
+          .attr("dy", function(d) {return d.depth == 0 ? "-.35em" : ".35em"})
+          .attr("text-anchor", "middle")
+          .attr("font-weight", "bold")
+          .attr("fill", "white")
+          .text(function(d) {
+            var text = (d.descend >= 5 ? d.descend : null);
+            //text += d.depth == 0 ? " Facilities" : null;
+            return text; });
+          //.style("fill-opacity", 1e-6);
+      nodeEnter.append("svg:text")
+          .attr("class", "fac")
+          .attr("dy", ".75em")
+          .attr("text-anchor", "middle")
+          .attr("font-weight", "bold")
+          .attr("fill", "white")
+          .text(function(d) {return d.depth == 0 && d.descend > 1 ? " Facilities" : null;});
+
+      // Transition nodes to their new position.
+      var nodeUpdate = node.transition()
+          .duration(duration)
+          .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+      nodeUpdate.select("circle")
+          .attr("r", function(d) {return d.descend ? radiusScale(d.descend) : .1;})
+          .style("fill", function(d) { return (d._children || d.depth == maxDepth) ? primaryColor : selectColor; })
+          .style("stroke", "none");
+
+      nodeUpdate.select("text")
+          .style("fill-opacity", 1)
+          .attr("class", function(d) {return d.children || d.opened == openedId ? "selected" : "default";});
+
+      nodeUpdate.select(".desc")
+        .text(function(d) {
+            var text = (d.descend >= 5 ? d.descend : null);
+            return text; });
+
+      nodeUpdate.select(".fac")
+        .text(function(d) {return d.depth == 0 && d.descend > 1 ? " Facilities" : null;});
+
+      // Transition exiting nodes to the parent's new position.
+      var nodeExit = node.exit().transition()
+          .duration(duration)
+          .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+          .remove();
+
+      nodeExit.select("circle")
+          .attr("r", 1e-6);
+
+      nodeExit.select("text")
+          .style("fill-opacity", 1e-6);
+
+      // Update the links…
+      var link = vis.selectAll("path.link")
+          .data(tree.links(nodes), function(d) { return d.target.id; });
+
+      // Enter any new links at the parent's previous position.
+      link.enter().insert("svg:path", "g")
+          .attr("class", "link")
+          .attr("d", function(d) {
+            var o = {x: source.x0, y: source.y0};
+            return diagonal({source: o, target: o});
+          })
+        .transition()
+          .duration(duration)
+          .attr("d", diagonal);
+
+      // Transition links to their new position.
+      link.transition()
+          .duration(duration)
+          .attr("d", diagonal);
+
+      // Transition exiting nodes to the parent's new position.
+      link.exit().transition()
+          .duration(duration)
+          .attr("d", function(d) {
+            var o = {x: source.x, y: source.y};
+            return diagonal({source: o, target: o});
+          })
+          .remove();
+
+      // Stash the old positions for transition.
+      nodes.forEach(function(d) {
+        d.x0 = d.x;
+        d.y0 = d.y;
       });
 
-  orderChildren(root);
-
-  root.children.forEach(toggleAll);
-
-  maxDescend = numDescend(root);
-
-  update(root);
-  
-});
-
-function toggleAll(d) {
-    if (d.children) {
-      orderChildren(d);
-      d.children.forEach(toggleAll);
-      toggle(d);
-    }
-}
-
-function orderChildren(d) {
-    if (d.children) {
-      d.children = d.children.sort(function (a, b) {
-        if (numDescend(a) > numDescend(b)) {return -1;}
-        if (numDescend(a) < numDescend(b)) {return 1;}
-        // a must be equal to b
-        return 0;
-      });
-    } else if (d._children) {
-      d._children = d._children.sort(function (a, b) {
-        if (numDescend(a) > numDescend(b)) {return -1;}
-        if (numDescend(a) < numDescend(b)) {return 1;}
-        // a must be equal to b
-        return 0;
-      });
-    }
-  }
-
-function update(source) {
-  resizeSvg();
-  var offset = [0,0,0,0,0];
-  var currMaxDepth = 0;
-  var duration = d3.event && d3.event.altKey ? 5000 : 500;
-
-  // Compute the new tree layout.
-  var nodes = tree.nodes(root).reverse();
-
-  var radiusScale = d3.scale.log()
-                    .domain([1, maxDescend])
-                    .range([1, 30]);
-
-  // set node x,y postions and count descendents
-  /*nodes.forEach(function(d) {
-    if(d.depth > currMaxDepth) {
-      currMaxDepth = d.depth;
-    }
-  })
-  */
-  nodes.forEach(function(d) {
-    d.y = d.depth * (d.depth == maxDepth ? 240 : 255);
-    d.descend = numDescend(d);
-    var radius = d.descend > 0 ? radiusScale(d.descend) : 0;
-  
-    //if ((prevNode.parent == d.parent) && (prevNode.id == d.id-1)) {
-    if (d3.max(levelWidth) >= 50) {
-      
-      if (d.depth != maxDepth) {
-        
-        offset[d.depth] += radius * (offset[d.depth] == 0 ? 1 : 2);
-        //d.x = d.x - d.offset;
-        //console.log(offset[d.depth]);
-        d.x = d.x - offset[d.depth];
-      }
+      firstUpdate = false;
     }
 
-    /*
-    //if overlap found and name is long and is not a leaf, offset
-    if (findOverlap(d) && d.name.length > 27 && d.depth != maxDepth) {
-      var newDx = d.x + 15;
-      /*while(findOverlap(newDx)) {
-        newDx = newDx + 15;
-      }
-      d.x = newDx;
-
-    }*/
-    //prevNode = d;
-  });
-  
-
-  
-
-  // Update the nodes…
-  var node = vis.selectAll("g.node")
-      .data(nodes, function(d) { return d.id || (d.id = ++i); });
-
-  // Enter any new nodes at the parent's previous position.
-  var nodeEnter = node.enter().append("svg:g")
-      .attr("class", "node")
-      .attr("transform", function(d) {
-       return "translate(" + source.y0 + "," + source.x0 + ")"; })
-      /*.attr("fill", function(d) {
-        if(d.opened) {
-          facOpened ? facOpened.select("text").classed("selected", false).classed("default", true) : null;
-          facOpened = d3.select(this);
-          console.log(facOpened);
-          facOpened.select("text").classed("selected", true).classed("default", false);
-        }
-        return null;})
-      */
-      .on("click", function(d) {
-        if (d.children == null) {
-          d3.select(this).select("text").attr("class", "selected");
-        } else {
-          d3.select(this).select("text").attr("class", "default");
-        }
-        //d.children || d._children ? toggle(d) : openMap(d); 
-        var svgh = d3.select("svg").attr("height");
-        if (d.children || d._children) { 
-          toggle(d) 
-        } else {
-          facOpened ? facOpened.select("text").classed("selected", false).classed("default", true) : null;
-          facOpened = d3.select(this);
-          console.log(facOpened);
-          facOpened.select("text").classed("selected", true).classed("default", false);
-          openMap(d); 
-        }
-        update(d);
-        
-        var newsvgh = d3.select("svg").attr("height");
-        if (svgh != newsvgh) {
-          var windowh = window.innerHeight
-            || document.documentElement.clientHeight
-            || document.body.clientHeight;
-          //d.children || d._children ? window.scroll(0, d.x - windowh/2) : null;
-        }
-      })
-      .on("mouseover", function(d) { 
-        //d3.select(this).select("text").attr("fill", function(d) {return d.children ?  selectColor : hoverColor;});
-        d3.select(this).select("text").attr("font-weight", "bold");
-        d3.select(this).select("text").text(function(d) {return d.name;});
-        if (d.name.length > labelCutoff) {
-          var xpadding = 4,
-              ypadding = 2,
-              defaultH = 12;
-          var bbox = this.getBBox();
-          
-          var rect = d3.select(this).append("rect")
-            .attr("x", bbox.x - xpadding)
-            .attr("y", bbox.y + bbox.height/2 - defaultH/2 )
-            .attr("width", (bbox.width - 15) + (xpadding * 2))
-            .attr("height", defaultH)
-            //.insertBefore()
-            .style("fill", "white")
-            .moveToBack();
-        }  
-        
-        //d.depth < (maxDepth-1) && d.descend > 0 ? openPie(d) : null;
-      })
-      .on("mouseout", function(d) {
-        d3.select("rect").remove();  
-        //d3.select(this).select("text").attr("fill", function(d) {return d.children ? selectColor : primaryColor;});
-        d3.select(this).select("text").attr("font-weight", function(d) {return d.children ? "bold" : "normal";});
-        d3.select(this).select("text").text(function(d) 
-          {return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
-        document.getElementById('pieContainer').style.visibility = "hidden";
-        $("#pieContainer").find("svg").remove("*");
-        
-        
-        //d.children || d._children ? null : document.getElementById('map').style.visibility = "hidden";
-        
-      });
-
-  nodeEnter.append("svg:circle")
-      .attr("r", 1e-6)
-      .style("fill", function(d) { return (d._children || d.depth == maxDepth) ? primaryColor : selectColor; });
-
-  nodeEnter.append("svg:text")
-      .attr("x", function(d) {
-        var offset = 7 + (d.descend > 0 ? radiusScale(d.descend) : 0);
-        return offset * (d.children || d._children ? -1 : 1); })
-      .attr("dy", ".35em")
-      .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
-      .attr("class", function(d) {return d.children ? "selected" : "default";})
-      .text(function(d) {
-        return d.name.length > labelCutoff ? d.name.substr(0,labelCutoff) + "..." : d.name;})
-      .style("fill-opacity", 1e-6);
-
-  nodeEnter.append("svg:text")
-      .attr("class", "desc")
-      .attr("dy", function(d) {return d.depth == 0 ? "-.35em" : ".35em"})
-      .attr("text-anchor", "middle")
-      .attr("font-weight", "bold")
-      .attr("fill", "white")
-      .text(function(d) {
-        var text = (d.descend >= 5 ? d.descend : null);
-        //text += d.depth == 0 ? " Facilities" : null;
-        return text; });
-      //.style("fill-opacity", 1e-6);
-  nodeEnter.append("svg:text")
-      .attr("class", "fac")
-      .attr("dy", ".75em")
-      .attr("text-anchor", "middle")
-      .attr("font-weight", "bold")
-      .attr("fill", "white")
-      .text(function(d) {return d.depth == 0 && d.descend > 1 ? " Facilities" : null;});
-
-  // Transition nodes to their new position.
-  var nodeUpdate = node.transition()
-      .duration(duration)
-      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
-
-  nodeUpdate.select("circle")
-      .attr("r", function(d) {return d.descend ? radiusScale(d.descend) : .1;})
-      .style("fill", function(d) { return (d._children || d.depth == maxDepth) ? primaryColor : selectColor; })
-      .style("stroke", "none");
-
-  nodeUpdate.select("text")
-      .style("fill-opacity", 1)
-      .attr("class", function(d) {return d.children ? "selected" : "default";});
-
-  nodeUpdate.select(".desc")
-    .text(function(d) {
-        var text = (d.descend >= 5 ? d.descend : null);
-        return text; });
-
-  nodeUpdate.select(".fac")
-    .text(function(d) {return d.depth == 0 && d.descend > 1 ? " Facilities" : null;});
-
-  // Transition exiting nodes to the parent's new position.
-  var nodeExit = node.exit().transition()
-      .duration(duration)
-      .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
-      .remove();
-
-  nodeExit.select("circle")
-      .attr("r", 1e-6);
-
-  nodeExit.select("text")
-      .style("fill-opacity", 1e-6);
-
-  // Update the links…
-  var link = vis.selectAll("path.link")
-      .data(tree.links(nodes), function(d) { return d.target.id; });
-
-  // Enter any new links at the parent's previous position.
-  link.enter().insert("svg:path", "g")
-      .attr("class", "link")
-      .attr("d", function(d) {
-        var o = {x: source.x0, y: source.y0};
-        return diagonal({source: o, target: o});
-      })
-    .transition()
-      .duration(duration)
-      .attr("d", diagonal);
-
-  // Transition links to their new position.
-  link.transition()
-      .duration(duration)
-      .attr("d", diagonal);
-
-  // Transition exiting nodes to the parent's new position.
-  link.exit().transition()
-      .duration(duration)
-      .attr("d", function(d) {
-        var o = {x: source.x, y: source.y};
-        return diagonal({source: o, target: o});
-      })
-      .remove();
-
-  // Stash the old positions for transition.
-  nodes.forEach(function(d) {
-    d.x0 = d.x;
-    d.y0 = d.y;
-  });
-
-  firstUpdate = false;
-}
-
-// Toggle children.
-/*function toggle(d) {
-  if (d.children) {
-    d._children = d.children;
-    d.children = null;
-  } else {
-    d.children = d._children;
-    d._children = null;
-  }
-}
-*/
 function toggle(d) {
   if (d.children) {
     d._children = d.hidden_children ? d.children.concat(d.hidden_children) : d.children;
@@ -739,113 +561,9 @@ function numDescend(node) {
 }
 
 
-//
-//functions to execute search
-//
-var foundCoord = [];
-var found = false;
 
-function findFacility(facility, node) {
-  if (node == null || found == true) {
-    return;
-  }
-  if (node.hasOwnProperty("children") == false) {
-    return;
-  }
 
-  var count = 0;
-  var ch = [];
-  if (node.children == null) {
-    count = node._children.length;
-    ch = node._children;
-  } else {
-    count = node.children.length;
-    ch = node.children;
-  }
-    for (var i = 0; i < count; i++) {
-      if (ch[i].name.toLowerCase() == facility) {
-        console.log("found!");
-        foundCoord.push(i);
-        found = true;
-        return;
-      } else {
-        findFacility(facility, ch[i]);
-        if (found == true) {
-          foundCoord.push(i);
-          return;
-        }
-      }
-    }
-  
-}
 
-function openTree(foundCoord) {
-  var curr = root;
-  console.log(foundCoord);
-  while (foundCoord.length > 0) {
-    var index = foundCoord.pop();
-
-    if (curr.children) {
-      curr = curr.children[index];
-    } else if (curr._children) {
-      toggle(curr);
-      curr = curr.children[index];
-    }
-
-    if (foundCoord.length == 0 && !(curr.children || curr._children)) {
-      openMap(curr);
-      console.log(curr);
-      curr.opened = true;
-      var windowh = window.innerHeight
-            || document.documentElement.clientHeight
-            || document.body.clientHeight;
-      window.scroll(0, curr.x - windowh/2);
-    }
-  }
-    update(root);
-
-/*
-    if (curr.children == null) {
-      curr = curr._children[index];
-    } else {
-      curr = curr.children[index];
-    }
-    
-    if (curr._children) { 
-      toggle(curr); 
-      update(curr);
-    } else if (!(curr.children || curr._children)){
-      openMap(curr);
-      console.log(curr);
-      curr.opened = true;
-      var windowh = window.innerHeight
-            || document.documentElement.clientHeight
-            || document.body.clientHeight;
-      window.scroll(0, curr.x - windowh/2);
-    }
-  }
-  update(root);
-*/
-}
-
-function startSearch(fac) {
-  foundCoord = [];
-  found = false;
-  console.log("starting search");
-  //var toFind = (document.getElementById('tags').value).toLowerCase();
-  var toFind = fac.toLowerCase();
-  console.log(toFind);
-  findFacility(toFind, root);
-  console.log("foundCoord: " + foundCoord);
-  if (foundCoord.length < 1) {
-    alert(toFind + " not found");
-  } else {
-    console.log("opening tree");
-    openTree(foundCoord);
-  }
-
-  $("searchbar.ui-widget.input").val('');
-}
 /*
 function openPie(fac) {
   //console.log(fac);
@@ -912,9 +630,15 @@ function openMap(fac) {
     $("#facAttr").find("li").eq(1).text("Address: " + fac.attr.FacAddress);
 
     //sets facility info window position - if window overlaps with banner, shifts down
+    console.log(fac.x);
     document.getElementById('facWindow').style.top = fac.x < 115 ? "45px" : (fac.x - 70) + "px";
     document.getElementById('facWindow').style.left = (fac.y - 280) + "px";
+    var windowh = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+    window.scroll(0, fac.x - windowh/2);
   });
+ 
   
   
 }
@@ -933,6 +657,405 @@ function arraysEqual(a, b) {
     return false;
   }
 }
+
+//PRIMARY TREE RENDERING FUNCTIONS
+  function toggleAll(d) {
+    if (d.children) {
+      orderChildren(d);
+      d.children.forEach(toggleAll);
+      toggle(d);
+    }
+  }
+
+  function orderChildren(d) {
+    if (d.children) {
+      d.children = d.children.sort(function (a, b) {
+        if (numDescend(a) > numDescend(b)) {return -1;}
+        if (numDescend(a) < numDescend(b)) {return 1;}
+        // a must be equal to b
+        return 0;
+      });
+    } else if (d._children) {
+      d._children = d._children.sort(function (a, b) {
+        if (numDescend(a) > numDescend(b)) {return -1;}
+        if (numDescend(a) < numDescend(b)) {return 1;}
+        // a must be equal to b
+        return 0;
+      });
+    }
+  }
+
+//FILTER FUNCTIONS
+  function findAgencies() {
+    var agency_over = new Set();
+    var agency_oper = new Set();
+
+    visit(root, function(d) {
+        d.children || d._children ? null : agency_over.add(d.attr.NewAgencyOver_Decode);
+        d.children || d._children ? null : agency_oper.add(d.attr.NewAgencyOper_Decode);
+
+    }, function(d) {
+        if (d.children && d.children.length > 0) {
+          return d.children; 
+        } else if (d._children && d._children.length > 0) {
+          return d._children;
+        }
+    });
+
+    filterTot.agency_over = agency_over.length;
+    filterTot.agency_oper = agency_oper.length;
+
+    agency_over.forEach(function(a) {
+      $('#agencyOver').append("<li><a href='#' class='small agency_over' data-value='" + a + "' tabIndex='-1'><input type='checkbox' checked='true'/>&nbsp;" + a + "</a></li>");
+      currFilters.agency_over.push(a);
+      allFilters.agency_over.push(a);
+    }); 
+
+    agency_oper.forEach(function(a) {
+      $('#agencyOper').append("<li><a href='#' class='small agency_oper' data-value='" + a + "' tabIndex='-1'><input type='checkbox' checked='true'/>&nbsp;" + a + "</a></li>");
+      currFilters.agency_oper.push(a);
+      allFilters.agency_oper.push(a);
+    });
+
+    $( '.dropdown-menu a:not(.all) ' ).on( 'click', function( event ) {
+    var cls = this.classList[1];
+    var clsSelector = '.' + cls;
+    
+    
+    var filterChanged = findFilter($(this).attr("class").slice(6));
+
+
+     var $target = $( event.currentTarget ),
+         val = $target.attr( 'data-value' ),
+         $inp = $target.find( 'input' ),
+         idx;
+
+         console.log(val);
+
+    if (val == 'ALL') {
+      //filterAll(filterChanged, filterMax, event);
+    } else {
+      if ( ( idx = filterChanged.filter.indexOf( val ) ) > -1 ) {
+        filterChanged.filter.splice( idx, 1 );
+        setTimeout( function() { $inp.prop( 'checked', false ) }, 0);
+        $(clsSelector + ".all").find('input').prop('checked', false);
+      } else {
+        filterChanged.filter.push( val );
+        setTimeout( function() { $inp.prop( 'checked', true ) }, 0);
+        var otherToggles = $(clsSelector).find('input');
+        var toggleAll = true;
+        console.log(otherToggles);
+        for (var i = 1; i < otherToggles.length; i++) {
+          console.log(otherToggles[i].checked);
+          if (otherToggles[i].checked == false) {
+            toggleAll = false;
+          } 
+        }
+        toggleAll ? $(clsSelector + ".all").find('input').prop('checked', true) : null;
+      }
+    }
+
+     $( event.target ).blur();
+        
+     console.log( currFilters );
+
+     tree.nodes(root).reverse().forEach(function(d) {
+        if(d.depth == (maxDepth - 1) && d.children || d.hidden_children) {
+          toggle(d);
+          toggle(d);
+        }
+      });
+
+     update(root);
+     findSearchableFac();
+     $( "#tags" ).autocomplete({
+        source: searchableFac 
+     });
+     return false;
+
+     
+  });
+
+  }
+
+  $( '.all' ).on( 'click', function( event ) { 
+    var cls = this.classList[1];
+    
+    var filterChanged = findFilter(cls);
+    cls = "." + cls;
+    var isChecked;
+    if (filterChanged.filter.length > 0) {
+      isChecked = true; 
+    } else {
+      isChecked = false;
+    } 
+    console.log(isChecked);
+
+    $(cls).find('input').prop('checked', false);
+    
+
+    
+    if (true) {
+      while(filterChanged.filter.length > 0) {filterChanged.filter.pop(); }
+    } else {
+      while(filterChanged.filter.length > 0) {filterChanged.filter.pop(); }
+      for ( var i = 0; i < filterChanged.allfilter.length; i++) {
+        filterChanged.filter.push(filterChanged.allfilter[i]);
+      }
+    }
+    
+    console.log(currFilters);
+    console.log(allFilters);
+    /*
+    if(filterChanged.max == filterChanged.filter.length) {
+      $(cls).find( 'input' ).prop("checked", false);
+      filterChanged.filter = [];
+    } else {
+      $(cls).find( 'input' ).prop("checked", true);
+    }
+    */
+
+    console.log( currFilters );
+
+     tree.nodes(root).reverse().forEach(function(d) {
+        if(d.depth == (maxDepth - 1) && d.children || d.hidden_children) {
+          toggle(d);
+          toggle(d);
+        }
+      });
+
+     update(root);
+     findSearchableFac();
+     $( "#tags" ).autocomplete({
+        source: searchableFac 
+     });
+     return false;
+  });
+
+
+  
+
+  function findFilter(whichFilter) {
+    var filterInfo = {
+      filter : [],
+      allfilter: []
+    };
+
+    switch(whichFilter) {
+      case "boro":
+        filterInfo.filter = currFilters.boro;
+        filterInfo.allfilter = allFilters.boro;
+        break;
+      case "agency_oper":
+        filterInfo.filter = currFilters.agency_oper;
+        filterInfo.allfilter = allFilters.agency_oper;
+        break;
+      case "agency_over":
+        filterInfo.filter = currFilters.agency_over;
+        filterInfo.allfilter = allFilters.agency_over;
+        break;
+      case "age":
+        filterInfo.filter = currFilters.age;
+        filterInfo.allfilter = allFilters.age;
+        break;
+    }
+
+    return filterInfo;
+  }
+
+  function filterAll(filterChanged, filterMax, event) {
+    var $target = $( event.currentTarget ),
+         $inp = $target.find( 'input' ),
+         idx,
+         cls = "." + event.currentTarget.className;
+
+    //all are selected -> unselect all
+    if (filterChanged.length == filterMax) {
+      filterChanged = [];
+      var cls = target.classList[1];
+      cls = "." + cls;
+      $(cls).find( 'input' ).prop("checked", false);
+      setTimeout( function() { $inp.prop( 'checked', false ) }, 0);
+    }
+  }
+
+//SEARCH FUNCTIONS
+var foundCoord = [];
+var found = false;
+
+  function findSearchableFac() {
+    console.log("finding searchable facilities");
+    searchableFac = [];
+
+    visit(root, function(d) {
+          if(d.children || d._children) {
+            searchableFac.push(d.name)
+          } else {
+            checkFilters(d) ? searchableFac.push(d.name) : null;
+          }
+      }, function(d) {
+          if (d.children && d.children.length > 0) {
+            return d.children; 
+          } else if (d._children && d._children.length > 0) {
+            return d._children;
+          }
+      }
+    );
+  }
+
+  function startSearch(fac) {
+    foundCoord = [];
+    found = false;
+    console.log("starting search");
+    //var toFind = (document.getElementById('tags').value).toLowerCase();
+    var toFind = fac.toLowerCase();
+    console.log(toFind);
+    findFacility(toFind, root);
+    console.log("foundCoord: " + foundCoord);
+    if (foundCoord.length < 1) {
+      alert(toFind + " not found");
+    } else {
+      console.log("opening tree");
+      openTree(foundCoord);
+    }
+
+    $("searchbar.ui-widget.input").val('');
+  }
+
+function findFacility(facility, node) {
+  if (node == null || found == true) {
+    return;
+  }
+  if (node.hasOwnProperty("children") == false) {
+    return;
+  }
+
+  var count = 0;
+  var ch = [];
+  if (node.children == null) {
+    count = node._children.length;
+    ch = node._children;
+  } else {
+    count = node.children.length;
+    ch = node.children;
+  }
+    for (var i = 0; i < count; i++) {
+      if (ch[i].name.toLowerCase() == facility) {
+        console.log("found!");
+        foundCoord.push(i);
+        found = true;
+        return;
+      } else {
+        findFacility(facility, ch[i]);
+        if (found == true) {
+          foundCoord.push(i);
+          return;
+        }
+      }
+    }
+  
+}
+
+function openTree(foundCoord) {
+  var curr = root;
+  console.log(foundCoord);
+  while (foundCoord.length > 0) {
+    var index = foundCoord.pop();
+    if (curr.children) {
+      curr = curr.children[index];
+    } else if (curr._children) {
+      toggle(curr);
+      curr = curr.children[index];
+    }
+
+    if (foundCoord.length == 0 && !(curr.children || curr._children)) {
+      openMap(curr);
+      console.log(curr);
+      openedId += 1;
+      curr.opened = openedId;
+      
+      console.log(curr.x);
+      var windowh = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+      
+      window.scroll(0, curr.x - windowh/2);
+    }
+  }
+    update(root);
+
+/*
+    if (curr.children == null) {
+      curr = curr._children[index];
+    } else {
+      curr = curr.children[index];
+    }
+    
+    if (curr._children) { 
+      toggle(curr); 
+      update(curr);
+    } else if (!(curr.children || curr._children)){
+      openMap(curr);
+      console.log(curr);
+      curr.opened = true;
+      var windowh = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+      window.scroll(0, curr.x - windowh/2);
+    }
+  }
+  update(root);
+*/
+}
+
+//FACILITY INFO WINDOW FUNCTIONS
+
+  //closes info window when user clicks somewhere else on screen
+  d3.select("#body:not(#facWindow)").on("click", function() { 
+         /*
+          var currSelected = d3.selectAll("#facOpened");
+          console.log(currSelected);
+          if(currSelected[0].length > 1) { 
+            var currFac = d3.select(currSelected[0][1]).select("text");
+            console.log(currFac);
+            currFac.attr("class") == "selected" ? currFac.classed("selected", false).classed("default", true) : null;
+            currFac.attr("id", null);
+          }
+          */
+          
+          document.getElementById('facWindow').style.visibility = "hidden";
+    });
+
+//MAP FUNCTIONS
+
+  function initMap() {
+    console.log("initializing map");
+    // Create a map object and specify the DOM element for display.
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: {lat: -40.7127, lng: 74.0059},
+      scrollwheel: true,
+      zoom: 15
+    });
+  }
+
+
+//HELPER FUNCTIONS
+
+  
+//utility function to move white bounding rectangle behind text
+    d3.selection.prototype.moveToBack = function() { 
+        return this.each(function() { 
+            var firstChild = this.parentNode.firstChild; 
+            if (firstChild) { 
+                this.parentNode.insertBefore(this, firstChild); 
+            } 
+        }); 
+    };
+
+
+
+
+
 /*
 function toggleBorough(b, allToggled) {
   
