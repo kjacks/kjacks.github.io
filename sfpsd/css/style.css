@@ -325,10 +325,6 @@ text.hovered {
   fill: rgb(0,68,104);
 }
 
-.ui-helper-hidden-accessible {
-  display:hidden;
-}
-
 .ui-autocomplete {
   font-weight: normal;
   padding: 0px;

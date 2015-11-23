@@ -453,9 +453,6 @@
 
          console.log(val);
 
-    if (val == 'ALL') {
-      //filterAll(filterChanged, filterMax, event);
-    } else {
       if ( ( idx = filterChanged.filter.indexOf( val ) ) > -1 ) {
         filterChanged.filter.splice( idx, 1 );
         setTimeout( function() { $inp.prop( 'checked', false ) }, 0);
@@ -474,7 +471,7 @@
         }
         toggleAll ? $(clsSelector + ".all").find('input').prop('checked', true) : null;
       }
-    }
+    
 
      $( event.target ).blur();
         
