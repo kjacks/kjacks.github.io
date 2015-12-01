@@ -1,4 +1,22 @@
+/*
+  index.js - implements functions for interactive tree visualization
+    Sections: 
+      Global Variables
+      Setup Functions
+      Update Functions
+      Primary Tree Rendering Functions
+      Filter Functions
+      Search Functions
+      Facility Info Window Functions
+      Helper Functions
+    Created by: Kirk Jackson
+    Last Modified: November 25, 2015
+*/
+
 //GLOBAL VARIABLES
+  
+    //Specify Data source here
+    var dataSource = "data/SFPSDparsedattr1.json";
 
     //sets dimensions and margins of svg
     var m = [50, 120, 20, 85],
@@ -36,20 +54,6 @@
       age : []
     };
 
-    var filterTot = {
-      boro : 5,
-      agency_oper : 0,
-      agency_over : 0,
-      age : 0
-    };
-
-    var allFilters = {
-      boro : ['BK','BX','MN','QN','SI'],
-      agency_oper : [],
-      agency_over : [],
-      age : []
-    };
-
     //array with number of nodes open at each level
     var levelWidth;
     
@@ -63,6 +67,11 @@
     //initializes google maps instance
     initMap();
 
+    $(".form-group").on("click", function() {
+      $(this).css("width", "20%");
+      $(this).css("background-color", "white");
+    });
+
     var tree = d3.layout.tree()
         .size([h, w]);
 
@@ -75,8 +84,7 @@
       .append("svg:g")
         .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
 
-    //Specify Data source here
-    d3.json("data/SFPSDparsedattr1.json", function(json) {
+    d3.json(dataSource, function(json) {
       root = json;
       root.x0 = h / 2;
       root.y0 = 0;
@@ -423,19 +431,14 @@
         }
     });
 
-    filterTot.agency_over = agency_over.length;
-    filterTot.agency_oper = agency_oper.length;
-
     agency_over.forEach(function(a) {
       $('#agencyOver').append("<li><a href='#' class='small agency_over' data-value='" + a + "' tabIndex='-1'><input type='checkbox' checked='true'/>&nbsp;" + a + "</a></li>");
       currFilters.agency_over.push(a);
-      allFilters.agency_over.push(a);
     }); 
 
     agency_oper.forEach(function(a) {
       $('#agencyOper').append("<li><a href='#' class='small agency_oper' data-value='" + a + "' tabIndex='-1'><input type='checkbox' checked='true'/>&nbsp;" + a + "</a></li>");
       currFilters.agency_oper.push(a);
-      allFilters.agency_oper.push(a);
     });
 
     $( '.dropdown-menu a:not(.all) ' ).on( 'click', function( event ) {
@@ -494,59 +497,7 @@
 
   }
 
-  $( '.all' ).on( 'click', function( event ) { 
-    var cls = this.classList[1];
-    
-    var filterChanged = findFilter(cls);
-    cls = "." + cls;
-    var isChecked;
-    if (filterChanged.filter.length > 0) {
-      isChecked = true; 
-    } else {
-      isChecked = false;
-    } 
-    console.log(isChecked);
-
-    $(cls).find('input').prop('checked', false);
-    
-
-    
-    if (true) {
-      while(filterChanged.filter.length > 0) {filterChanged.filter.pop(); }
-    } else {
-      while(filterChanged.filter.length > 0) {filterChanged.filter.pop(); }
-      for ( var i = 0; i < filterChanged.allfilter.length; i++) {
-        filterChanged.filter.push(filterChanged.allfilter[i]);
-      }
-    }
-    
-    console.log(currFilters);
-    console.log(allFilters);
-    /*
-    if(filterChanged.max == filterChanged.filter.length) {
-      $(cls).find( 'input' ).prop("checked", false);
-      filterChanged.filter = [];
-    } else {
-      $(cls).find( 'input' ).prop("checked", true);
-    }
-    */
-
-    console.log( currFilters );
-
-     tree.nodes(root).reverse().forEach(function(d) {
-        if(d.depth == (maxDepth - 1) && d.children || d.hidden_children) {
-          toggle(d);
-          toggle(d);
-        }
-      });
-
-     update(root);
-     findSearchableFac();
-     $( "#tags" ).autocomplete({
-        source: searchableFac 
-     });
-     return false;
-  });
+  
 
   function checkFilters(fac) {
   if (isIn(String(fac.attr.Borough), currFilters.boro) &&
@@ -562,26 +513,21 @@
 
   function findFilter(whichFilter) {
     var filterInfo = {
-      filter : [],
-      allfilter: []
+      filter : []
     };
 
     switch(whichFilter) {
       case "boro":
         filterInfo.filter = currFilters.boro;
-        filterInfo.allfilter = allFilters.boro;
         break;
       case "agency_oper":
         filterInfo.filter = currFilters.agency_oper;
-        filterInfo.allfilter = allFilters.agency_oper;
         break;
       case "agency_over":
         filterInfo.filter = currFilters.agency_over;
-        filterInfo.allfilter = allFilters.agency_over;
         break;
       case "age":
         filterInfo.filter = currFilters.age;
-        filterInfo.allfilter = allFilters.age;
         break;
     }
 

@@ -1,0 +1,89 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+	<title></title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+	<link rel="stylesheet" href="leaflet-search.css" />
+	<link rel="stylesheet" href="teststyle.css" />
+</head>
+
+<body>
+	
+	<div id="map"></div>
+
+	<div id="post-it">
+	Search restaurants in Rome, data by <a href="http://wiki.openstreetmap.org/wiki/Overpass_API">OSM Overpass</a><br />
+	Example: <i>pizza</i>, <i>vege</i>, <i>japa</i>, <i>giappo</i>, <i>cucina romana</i>, <i>chine</i> ...
+	</div>
+
+
+	<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+	<script src="leaflet-search.min.js"></script>
+	<script src="testdata.geojson.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/fuse.js/1.2.2/fuse.min.js"></script>
+
+
+	<script>
+
+	var map = L.map('map', {
+			zoom: 12,
+			center: new L.latLng(41.8990, 12.4977),
+			layers: L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+		});
+	
+	var restLayers = L.geoJson(restaurant500, {
+			pointToLayer: function(feature, latlng) {
+
+				var props = L.Util.extend({
+							'name': '',
+							'cuisine': '',
+							'website': '',
+							'phone': ''
+						},feature.properties),
+					textPopup = L.Util.template("<h3>{name}</h3>{cuisine}<br>{website}<br>{phone}", props),
+					style = {
+						radius: 5,
+						opacity: 0.8,
+						fillColor: '#ddd',
+						fillOpacity: 0.8
+					};
+
+				return L.circleMarker(latlng, style).bindPopup(textPopup);
+			}
+		}).addTo(map);
+
+	var fuse = new Fuse(restaurant500.features, {
+		keys: ['properties.name', 'properties.cuisine']
+	});
+
+	L.control.search({
+		zoom: 15,
+		layer: restLayers,
+		propertyName: 'name',
+		filterData: function(text, records) {
+			var jsons = fuse.search(text),
+				ret = {}, key;
+			
+			for(var i in jsons) {
+				key = jsons[i].properties.name;
+				ret[ key ]= records[key];
+			}
+
+			console.log(jsons,ret);
+			return ret;
+		}
+	})
+	.on('search_locationfound', function(e) {
+		e.layer.openPopup();
+	})
+	.addTo(map);
+
+
+</script>
+
+
+
+</body>
+</html>

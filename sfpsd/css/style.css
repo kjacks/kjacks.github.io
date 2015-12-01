@@ -153,6 +153,7 @@ a:hover {
 }
 
 a.btn {
+
   background-color:rgb(0,68,104);
 }
 
@@ -326,6 +327,7 @@ text.hovered {
 }
 
 .ui-autocomplete {
+  z-index: 5;
   font-weight: normal;
   padding: 0px;
   left: 800px;
@@ -356,4 +358,66 @@ text.hovered {
 #all {
   font-weight: bold;
 }
+
+
+
+.search-form .form-group {
+  float: left !important;
+  transition: all 0.35s, border-radius 0s;
+  width: 34px;
+  height: 33px;
+  background-color: rgb(0,68,104);
+  margin-top: 11.4px;
+  margin-left: 9px;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid #2e6da4;
+}
+
+.search-form .form-group:hover {
+  background-color: #286090;
+  cursor: pointer;
+}
+.search-form .form-group input.form-control {
+  padding-right: 20px;
+  border: 0 none;
+  background: transparent;
+  box-shadow: none;
+  display:block;
+}
+.search-form .form-group input.form-control::-webkit-input-placeholder {
+  display: none;
+}
+.search-form .form-group input.form-control:-moz-placeholder {
+  /* Firefox 18- */
+  display: none;
+}
+.search-form .form-group input.form-control::-moz-placeholder {
+  /* Firefox 19+ */
+  display: none;
+}
+.search-form .form-group input.form-control:-ms-input-placeholder {
+  display: none;
+}
+
+.form-control {
+  font-size: 13px;
+}
+
+.search-form .form-group span.form-control-feedback {
+  position: absolute;
+  top: -1px;
+  right: -2px;
+  z-index: 2;
+  display: block;
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
+  text-align: center;
+  cursor: pointer;
+  left: initial;
+  font-size: 14px;
+}
+
 
