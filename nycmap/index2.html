@@ -1,0 +1,175 @@
+<html>
+<head>
+	<title>NYC Facilities Map</title>
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		
+	<link rel="stylesheet" href= "materialize/css/materialize.css" />
+<link rel="stylesheet" href= "style.css" />
+ 	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+ 	    <script type="text/javascript" src="jquery/jquery-2.1.4.min.js"></script>
+ 	<script type="text/javascript" src="d3/d3.min.js"></script>
+ 	<script type="text/javascript" src="materialize/js/materialize.js"></script>
+ 	<script type="text/javascript" src="colorbrewer.js"></script>
+ 	<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+ 	<link rel="stylesheet" href="leaflet-search.css" />
+ 	<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.2.0/leaflet-omnivore.min.js'></script>
+ 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+	<script type="text/javascript" src="leaflet-search.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/fuse.js/1.2.2/fuse.min.js"></script>
+
+		<!-- Dropdown Structure -->
+		<ul id="dropdown1" class="dropdown-content">
+		  <li><a href="#!">one</a></li>
+		  <li><a href="#!">two</a></li>
+		  <li class="divider"></li>
+		  <li><a href="#!">three</a></li>
+		</ul>
+		<nav>
+		  <div class="nav-wrapper">
+		    <a href="#!" class="brand-logo">City Planning Facilities Database</a>
+		    <ul class="right hide-on-med-and-down">
+		      <li><a href="sass.html"><i class="material-icons">filter</i> </a></li>
+		      <li><a href="sass.html"><i class="material-icons">search</i></a></li>
+		      <!-- Dropdown Trigger -->
+		      <li><a class="dropdown-button" href="#!" data-activates="dropdown1">Dropdown<i class="material-icons right">arrow_drop_down</i></a></li>
+		    </ul>
+		  </div>
+		</nav>
+		<div id="map" ></div>
+		<input id='search' class='search-ui' placeholder='Enter state code' />
+	
+	
+	<script>
+		$( document ).ready(function() {
+			$(".dropdown-button").dropdown();
+		});
+
+		var data;
+
+		var colorScale = d3.scale.linear()
+			.domain([0, 6])
+	    	.range(colorbrewer.RdBu[9]);
+
+		var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+		  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+		});
+
+		var fac_markers = [];
+		var fac_layer;
+
+		var map = L.map('map', {
+		    scrollWheelZoom: false,
+		    center: [40.7127837, -74.0059413],
+		    zoom: 11
+		});
+
+		map.addLayer(layer);
+
+		
+		d3.csv('data-subset.csv', function(d) {
+			data = d;
+			console.log(data);
+			data.forEach(function(d) {
+				//console.log(d.NewGroupType);
+				var color = colorScale(d.NewGroupType);
+				//console.log(color);
+				
+
+				var mark = L.circleMarker([d.Latitude, d.Longitude],
+					{ 
+						fill: "blue",
+						radius: 3,
+						stroke: false,
+						fillOpacity : 1
+					}
+				).bindPopup("<b>" + d.FacName + "</b><br>" + d.Borough);
+
+				fac_markers.push(mark);
+			});
+			
+			console.log(fac_markers);
+			fac_layer = L.layerGroup(fac_markers).addTo(map);
+
+			L.control.search({
+				zoom: 15,
+				layer: fac_layer,
+				propertyName: 'name',
+				filterData: function(text, records) {
+					var jsons = fuse.search(text),
+						ret = {}, key;
+					
+					for(var i in jsons) {
+						key = jsons[i].properties.name;
+						ret[ key ]= records[key];
+					}
+
+					console.log(jsons,ret);
+					return ret;
+				}
+			})
+			.on('search_locationfound', function(e) {
+				e.layer.openPopup();
+			})
+			.addTo(map);
+			});
+
+
+	function executeSearch() {
+		console.log("heer");
+		
+		
+
+		
+
+	}
+
+		$('#search').keyup(search);
+
+		function search() {
+		    // get the value of the search input field
+		    var searchString = $('#search').val().toLowerCase();
+
+		    fac_layer.setFilter(showState);
+
+		    // here we're simply comparing the 'state' property of each marker
+		    // to the search string, seeing whether the former contains the latter.
+		    function showState(feature) {
+		        return feature.properties.state
+		            .toLowerCase()
+		            .indexOf(searchString) !== -1;
+		    }
+		}
+
+		function onMapClick(e) {
+		    //alert("You clicked the map at " + e.latlng);
+		}
+		
+		var points = omnivore.csv('data-subset.csv')
+			.on('ready', function(layer) {
+		        this.eachLayer(function(marker) {
+		        	console.log(marker);
+		        	var curr_lat = marker._latlng.lat;
+		        	var curr_lng = marker._latlng.lng;
+
+		 			L.circle([curr_lat, curr_lng], 10, {
+   						
+					}).addTo(map);
+
+		            //change the icons for each point on the map
+		            //marker.setIcon(circel);
+	
+		        });
+	    });
+	
+
+		
+		map.on('click', onMapClick);
+
+	</script>
+</body>
+</html>
