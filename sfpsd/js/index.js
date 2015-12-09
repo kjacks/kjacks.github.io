@@ -16,7 +16,7 @@
 //GLOBAL VARIABLES
   
     //Specify Data source here
-    var dataSource = "data/SFPSDparsedattr1.json";
+    var dataSource = "data/SFPSDparsed.json";
 
     //sets dimensions and margins of svg
     var m = [50, 120, 20, 85],
@@ -51,7 +51,7 @@
       boro : ['BK','BX','MN','QN','SI'],
       agency_oper : [],
       agency_over : [],
-      age : []
+      age : ['C','Y','A','S','F','G']
     };
 
     //array with number of nodes open at each level
@@ -67,6 +67,7 @@
     //initializes google maps instance
     initMap();
 
+    //expands searchbar when clicked
     $(".form-group").on("click", function() {
       $(this).css("width", "20%");
       $(this).css("background-color", "white");
@@ -84,15 +85,20 @@
       .append("svg:g")
         .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
 
+    /*
+      takes in json data and calls functions to fill filter options,
+        fill dropdown autocompletesearch options, order nodes in
+        descending order, toggle intial display, and call initial update
+    */
     d3.json(dataSource, function(json) {
       root = json;
       root.x0 = h / 2;
       root.y0 = 0;
       
       findAgencies();
-      findSearchableFac();
 
       //sets up autocomplete search
+      findSearchableFac();
       $( "#tags" ).autocomplete({
         source: searchableFac,
         appendTo: ".searchbar",
@@ -113,11 +119,13 @@
                         .range([1, 30]);
 
       update(root);
-  
     });
 
     //UPDATE
 
+    /*
+      
+    */
     function update(source) {
       //stores current offset for each level to vertically space crowded nodes/labels
       var offset = [0,0,0,0,0];
@@ -146,7 +154,7 @@
         }
       });
       
-      // Update the nodes…
+      // Update the nodes
       var node = vis.selectAll("g.node")
           .data(nodes, function(d) { return d.id || (d.id = ++i); });
 
@@ -500,15 +508,39 @@
   
 
   function checkFilters(fac) {
-  if (isIn(String(fac.attr.Borough), currFilters.boro) &&
-    isIn(String(fac.attr.NewAgencyOper_Decode), currFilters.agency_oper) &&
-    isIn(String(fac.attr.NewAgencyOver_Decode), currFilters.agency_over)) {
-    //ADD AGE COHORT TOO
-    return true;
-  } else {
+    if (isIn(String(fac.attr.Borough), currFilters.boro) &&
+      isIn(String(fac.attr.NewAgencyOper_Decode), currFilters.agency_oper) &&
+      isIn(String(fac.attr.NewAgencyOver_Decode), currFilters.agency_over) && 
+      checkAgeFiler(fac)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  function checkAgeFiler(fac) {
+    console.log(currFilters.age);
+    if (isIn('C', currFilters.age)) {
+      if (fac.attr.AgeChild == 1) {return true;};
+    }
+    if (isIn('Y', currFilters.age)) {
+      if (fac.attr.AgeYouth == 1) {return true;};
+    }
+    if (isIn('A', currFilters.age)) {
+      if (fac.attr.AgeAdult == 1) {return true;};
+    }
+    if (isIn('S', currFilters.age)) {
+      if (fac.attr.AgeSenior == 1) {return true;};
+    }
+    if (isIn('F', currFilters.age)) {
+      if (fac.attr.AgeFamily == 1) {return true;};
+    }
+    if (isIn('G', currFilters.age)) {
+      if (fac.attr.AgeGenpub == 1) {return true;};
+    }
+
     return false;
   }
-}
   
 
   function findFilter(whichFilter) {
