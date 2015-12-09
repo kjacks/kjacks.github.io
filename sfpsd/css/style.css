@@ -368,7 +368,11 @@ text.hovered {
   font-weight: bold;
 }
 
-
+.subtitle {
+  padding-top:5px ;
+  padding-left: -10px;
+  font-size: 11px;
+}
 
 .search-form .form-group {
   float: left !important;
