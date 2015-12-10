@@ -5,6 +5,9 @@
 	<title>NYC Facilities Map</title>
 	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 	<script src='https://api.mapbox.com/mapbox.js/v2.2.3/mapbox.js'></script>
+	<link type="text/css" href="colorbrewer.css" rel="stylesheet">
+	<script type="text/javascript" src="d3/d3.min.js"></script>
+	<script type="text/javascript" src="colorbrewer.js"></script>
 	<link href='https://api.mapbox.com/mapbox.js/v2.2.3/mapbox.css' rel='stylesheet' />
 	<link rel="stylesheet" href= "style.css" />
 	<style>
@@ -39,14 +42,14 @@
 	<script>
 		L.mapbox.accessToken = 'pk.eyJ1Ijoia2phY2tzIiwiYSI6ImNpaGNqZzg3MzA3b3p1ZW1henJmdHFwcXcifQ.8VPtPnB9QdLxxAU2mXDpfw';
 
-		//var map = L.mapbox.map('map', 'mapbox.streets', )
-		//    .setView([40.7127837, -74.0059413], 11);
-
 		var map = L.map('map', {
 		    scrollWheelZoom: true,
+		    zoomControl: false,
 		    center: [40.7127837, -74.0059413],
 		    zoom: 11
 		});
+
+		new L.Control.Zoom({ position: 'topright' }).addTo(map);
 
 		var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
 		  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
@@ -54,26 +57,32 @@
 
 		$('#search').keyup(search);
 
+		var colorScale = d3.scale.quantize()
+	        .domain([1, 6])
+	        .range(colorbrewer.BrBG[5]);
+
 		var feat_layer_options = {
 			pointToLayer: function (feature, latlng) {
+				//console.log(feature);
+				var fill_col = colorScale(feature.properties.NewGroupType);
 				return L.circleMarker(latlng, {
 					stroke: false,
-					fillColor: "rgb(0,68,104)",
+					fillColor: fill_col,
 					fillOpacity: 1, 
 					
-				}).setRadius(3);
+				}).setRadius(4).bindPopup(feature.properties.FacName);
 			}
 		}
 
 		var csvLayer = omnivore.csv('new-subset.csv', null, L.mapbox.featureLayer(null, feat_layer_options))
-			.on('ready', function(layer) {
+			/*.on('ready', function(layer) {
 				
 	        // An example of customizing marker styles based on an attribute.
 	        // In this case, the data, a CSV file, has a column called 'state'
 	        // with values referring to states. Your data might have different
 	        // values, so adjust to fit.
 		        this.eachLayer(function(marker) {
-		        	/*//console.log(marker);
+		        	/console.log(marker);
 		            if (marker.toGeoJSON().properties.FacName === 'CA') {
 		                // The argument to L.mapbox.marker.icon is based on the
 		                // simplestyle-spec: see that specification for a full
@@ -87,24 +96,29 @@
 		                marker.setIcon(circleIcon);
 
 		            //}
-		    		*/
+		    		
 		            // Bind a popup to each icon based on the same properties
 		            marker.bindPopup(marker.toGeoJSON().properties.FacName + ', ' +
 		                marker.toGeoJSON().properties.Borough);
 		            
 		        });
-	    	})
+	    	})*/
 		    .addTo(map);
-		
-		console.log(map);
 
 		function search() {
 		    // get the value of the search input field
 		    var searchString = $('#search').val().toLowerCase();
 
-		   csvLayer.setFilter(showState);
-		    
+		    console.log(csvLayer);
+		   	csvLayer.setFilter(showState);
 
+		   	/*csvLayer.eachLayer(function(marker) {
+		   			console.log(marker);
+		            marker.openPopup();
+		        });
+		       */
+
+		   	console.log(csvLayer);
 		    // here we're simply comparing the 'state' property of each marker
 		    // to the search string, seeing whether the former contains the latter.
 		    function showState(feature) {
@@ -123,8 +137,6 @@
 		        // If the data-filter attribute is set to "all", return
 		        // all (true). Otherwise, filter on markers that have
 		        // a value set to true based on the filter name.
-		        console.log(f.properties.NewGroupType_Decode);
-		        console.log(filter);
 		        return (filter === 'all') ? true : f.properties.NewGroupType_Decode === filter;
 		    });
 		    return false;
