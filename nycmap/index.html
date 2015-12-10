@@ -68,9 +68,9 @@
 
 		$('#search').keyup(search);
 
-		var colorScale = d3.scale.quantize()
+		var colorScale = d3.scale.ordinal()
 	        .domain([1, 6])
-	        .range(colorbrewer.BrBG[5]);
+	        .range(["#AD8607", "#3B4BAD","#3F78B8", "#3F8EA1", "#3FB8A4", "#35AD6F"]);
 
 		var feat_layer_options = {
 			pointToLayer: function (feature, latlng) {
@@ -179,17 +179,6 @@
 		}
 
 		
-
-		function getField(level, fac) {
-			switch(level) {
-				case "group":
-					return fac.properties.NewGroupType_Decode;
-					break;
-				case "subgroup":
-					return fac.properties.NewSgroup_Decode;
-					break;
-			}
-		}
 	</script>
 	
 </body>
