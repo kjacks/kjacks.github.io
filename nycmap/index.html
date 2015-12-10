@@ -8,8 +8,11 @@
 	<link type="text/css" href="colorbrewer.css" rel="stylesheet">
 	<script type="text/javascript" src="d3/d3.min.js"></script>
 	<script type="text/javascript" src="colorbrewer.js"></script>
+	<script type="text/javascript" src="jquery/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript" src="cssmenu/script.js"></script>
 	<link href='https://api.mapbox.com/mapbox.js/v2.2.3/mapbox.css' rel='stylesheet' />
 	<link rel="stylesheet" href= "style.css" />
+	<link rel="stylesheet" href= "cssmenu/styles.css" />
 	<style>
 	  body { margin:0; padding:0; }
 	  #map { position:absolute; top:0; bottom:0; width:100%; }
@@ -28,18 +31,45 @@
 
 	<div id='controls'>
 		<input id='search' class='search-ui' placeholder='Enter Facility Name' />
-		<nav class='menu-ui'>
-		  <a href='#' class='active' data-filter='all'>Show all</a>
-		  <a href='#' data-filter='Educational Facilities'>Educational Facilities</a>
-		  <a href='#' data-filter='Community & Recreational Facilities'>Community & Recreational Facilities</a>
-		  <a href='#' data-filter='Hospitals & Health Service Facilities'>Hospitals & Health Service Facilities</a>
-		  <a href='#' data-filter='Public Safety & Justice Facilities'>Public Safety & Justice Facilities</a>
-		  <a href='#' data-filter='Transportation & Waste Facilities'>Transportation & Waste Facilities</a>
-		  <a href='#' data-filter='Housing & Social Service Facilities'>Housing & Social Service Facilities</a>
-		</nav>
+		<div id='cssmenu'>
+			<ul>
+			   <li class='active' ><a class='group' href='#' data-filter='all'>Show All</a></li>
+			   <li class='has-sub'><a class='group' href='#' data-filter='Educational Facilities'>Educational Facilities</a>
+			      <ul>
+			         <li class='has-sub'><a class='subgroup' href='#' data-filter='Public Elementary and Secondary Schools'>Public Elementary and Secondary Schools</a>
+			            <ul>
+			               <li><a href='#'>Sub Product</a></li>
+			               <li><a href='#'>Sub Product</a></li>
+			            </ul>
+			         </li>
+			         <li class='has-sub'><a class='subgroup' href='#' data-filter='Private/Parochial Elementary and Secondary Schools'>Private/Parochial Elementary and Secondary Schools</a>
+			            <ul>
+			               <li><a href='#'>Sub Product</a></li>
+			               <li><a href='#'>Sub Product</a></li>
+			            </ul>
+			         </li>
+			      </ul>
+			   </li>
+			   <li><a href='#' data-filter='Community & Recreational Facilities'>Community & Recreational Facilities</a></li>
+			   <li><a href='#' data-filter='Hospitals & Health Service Facilities'>Hospitals & Health Service Facilities</a></li>
+			   <li><a href='#' data-filter='Public Safety & Justice Facilities'>Public Safety & Justice Facilities</a></li>
+			   <li><a href='#' data-filter='Transportation & Waste Facilities'>Transportation & Waste Facilities</a></li>
+			   <li><a href='#' data-filter='Housing & Social Service Facilities'>Housing & Social Service Facilities</a></li>
+			</ul>
+		</div>
 	</div>
 
 	<script>
+
+		var categories = {
+			"Educational Facilities": {},
+			"Community & Recreational Facilities": {},
+			"Hospitals & Health Service Facilities": {},
+			"Public Safety & Justice Facilities": {},
+			"Transportation & Waste Facilities": {},
+			"Housing & Social Service Facilities": {}
+		};
+
 		L.mapbox.accessToken = 'pk.eyJ1Ijoia2phY2tzIiwiYSI6ImNpaGNqZzg3MzA3b3p1ZW1henJmdHFwcXcifQ.8VPtPnB9QdLxxAU2mXDpfw';
 
 		var map = L.map('map', {
@@ -75,8 +105,12 @@
 		}
 
 		var csvLayer = omnivore.csv('new-subset.csv', null, L.mapbox.featureLayer(null, feat_layer_options))
-			/*.on('ready', function(layer) {
-				
+			.on('ready', function(layer) {
+				console.log(layer);
+				this.eachLayer(function(marker) {
+					console.log(marker.feature.properties.NewSgroup_Decode);
+				});
+			/*
 	        // An example of customizing marker styles based on an attribute.
 	        // In this case, the data, a CSV file, has a column called 'state'
 	        // with values referring to states. Your data might have different
@@ -101,8 +135,8 @@
 		            marker.bindPopup(marker.toGeoJSON().properties.FacName + ', ' +
 		                marker.toGeoJSON().properties.Borough);
 		            
-		        });
-	    	})*/
+		        });*/
+	    	})
 		    .addTo(map);
 
 		function search() {
@@ -129,6 +163,33 @@
 		    }
 		}
 
+		$('a').on('click', function() {
+			var level = this.classList[0];
+			
+		    // For each filter link, get the 'data-filter' attribute value.
+		    var filter = $(this).data('filter');
+		    
+		    csvLayer.setFilter(function(f) {
+		    	
+		        // If the data-filter attribute is set to "all", return
+		        // all (true). Otherwise, filter on markers that have
+		        // a value set to true based on the filter name.
+		        return (filter === 'all') ? true : getField(level, f) === filter;
+		    });
+		    return false;
+		});
+
+		function getField(level, fac) {
+			switch(level) {
+				case "group":
+					return fac.properties.NewGroupType_Decode;
+					break;
+				case "subgroup":
+					return fac.properties.NewSgroup_Decode;
+					break;
+			}
+		}
+	/*
 		$('.menu-ui a').on('click', function() {
 		    // For each filter link, get the 'data-filter' attribute value.
 		    var filter = $(this).data('filter');
@@ -141,6 +202,7 @@
 		    });
 		    return false;
 		});
+	*/
 	</script>
 </body>
 </html>

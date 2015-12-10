@@ -10,7 +10,7 @@
       Facility Info Window Functions
       Helper Functions
     Created by: Kirk Jackson
-    Last Modified: November 25, 2015
+    Last Modified: December 9, 2015
 */
 
 //GLOBAL VARIABLES
