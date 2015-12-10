@@ -10,6 +10,7 @@
 	<script type="text/javascript" src="colorbrewer.js"></script>
 	<script type="text/javascript" src="jquery/jquery-2.1.4.min.js"></script>
 	<script type="text/javascript" src="cssmenu/script.js"></script>
+	
 	<link href='https://api.mapbox.com/mapbox.js/v2.2.3/mapbox.css' rel='stylesheet' />
 	<link rel="stylesheet" href= "style.css" />
 	<link rel="stylesheet" href= "cssmenu/styles.css" />
@@ -32,29 +33,9 @@
 	<div id='controls'>
 		<input id='search' class='search-ui' placeholder='Enter Facility Name' />
 		<div id='cssmenu'>
-			<ul>
+			<ul id='grouplist'>
 			   <li class='active' ><a class='group' href='#' data-filter='all'>Show All</a></li>
-			   <li class='has-sub'><a class='group' href='#' data-filter='Educational Facilities'>Educational Facilities</a>
-			      <ul>
-			         <li class='has-sub'><a class='subgroup' href='#' data-filter='Public Elementary and Secondary Schools'>Public Elementary and Secondary Schools</a>
-			            <ul>
-			               <li><a href='#'>Sub Product</a></li>
-			               <li><a href='#'>Sub Product</a></li>
-			            </ul>
-			         </li>
-			         <li class='has-sub'><a class='subgroup' href='#' data-filter='Private/Parochial Elementary and Secondary Schools'>Private/Parochial Elementary and Secondary Schools</a>
-			            <ul>
-			               <li><a href='#'>Sub Product</a></li>
-			               <li><a href='#'>Sub Product</a></li>
-			            </ul>
-			         </li>
-			      </ul>
-			   </li>
-			   <li><a href='#' data-filter='Community & Recreational Facilities'>Community & Recreational Facilities</a></li>
-			   <li><a href='#' data-filter='Hospitals & Health Service Facilities'>Hospitals & Health Service Facilities</a></li>
-			   <li><a href='#' data-filter='Public Safety & Justice Facilities'>Public Safety & Justice Facilities</a></li>
-			   <li><a href='#' data-filter='Transportation & Waste Facilities'>Transportation & Waste Facilities</a></li>
-			   <li><a href='#' data-filter='Housing & Social Service Facilities'>Housing & Social Service Facilities</a></li>
+			   
 			</ul>
 		</div>
 	</div>
@@ -108,8 +89,15 @@
 			.on('ready', function(layer) {
 				console.log(layer);
 				this.eachLayer(function(marker) {
-					console.log(marker.feature.properties.NewSgroup_Decode);
+					var group = marker.feature.properties.NewGroupType_Decode;
+					var subgroup = marker.feature.properties.NewSgroup_Decode;
+
+					group.toString();
+					subgroup.toString();
+
+					categories[group][subgroup] = {}; 
 				});
+				addFilters();
 			/*
 	        // An example of customizing marker styles based on an attribute.
 	        // In this case, the data, a CSV file, has a column called 'state'
@@ -139,6 +127,33 @@
 	    	})
 		    .addTo(map);
 
+		function addFilters() {
+			//agency_over.forEach(function(a) {
+			for(group in categories) {
+
+				var h = "<li class='has-sub'><a class='group' href='#' data-filter='" + group + "'>"+ group + "</a> <ul>";
+
+				for (subgroup in categories[group]) {
+					console.log(subgroup);
+					h += "<li><a class='subgroup' href='#' data-filter='" + subgroup + "'>"+ subgroup + "</a></li>";
+				}
+
+				h += "</ul></li>";
+				$('#grouplist').append(h);
+			};
+		      
+		    //  currFilters.agency_over.push(a);
+		    //}); 
+
+			console.log();
+
+			for (var i = 0; i < categories.length; i++) {
+				console.log(categories[i]);
+			}
+
+			addFilterInteraction();
+		}
+
 		function search() {
 		    // get the value of the search input field
 		    var searchString = $('#search').val().toLowerCase();
@@ -163,21 +178,7 @@
 		    }
 		}
 
-		$('a').on('click', function() {
-			var level = this.classList[0];
-			
-		    // For each filter link, get the 'data-filter' attribute value.
-		    var filter = $(this).data('filter');
-		    
-		    csvLayer.setFilter(function(f) {
-		    	
-		        // If the data-filter attribute is set to "all", return
-		        // all (true). Otherwise, filter on markers that have
-		        // a value set to true based on the filter name.
-		        return (filter === 'all') ? true : getField(level, f) === filter;
-		    });
-		    return false;
-		});
+		
 
 		function getField(level, fac) {
 			switch(level) {
@@ -189,20 +190,7 @@
 					break;
 			}
 		}
-	/*
-		$('.menu-ui a').on('click', function() {
-		    // For each filter link, get the 'data-filter' attribute value.
-		    var filter = $(this).data('filter');
-		    $(this).addClass('active').siblings().removeClass('active');
-		    csvLayer.setFilter(function(f) {
-		        // If the data-filter attribute is set to "all", return
-		        // all (true). Otherwise, filter on markers that have
-		        // a value set to true based on the filter name.
-		        return (filter === 'all') ? true : f.properties.NewGroupType_Decode === filter;
-		    });
-		    return false;
-		});
-	*/
 	</script>
+	
 </body>
 </html>
