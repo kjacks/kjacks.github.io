@@ -98,9 +98,9 @@
 				return L.circleMarker(latlng, {
 					stroke: false,
 					fillColor: colorScale[feature.properties.NewGroupType],
-					fillOpacity: 1, 
+					fillOpacity: .6, 
 					
-				}).setRadius(4).bindPopup(feature.properties.FacName);
+				}).setRadius(3.5).bindPopup(feature.properties.FacName);
 			}
 		}
 
@@ -186,7 +186,6 @@
 		    // get the value of the search input field
 		    var searchString = $('#search').val().toLowerCase();
 
-		    console.log(csvLayer);
 		   	csvLayer.setFilter(showState);
 
 		   	/*csvLayer.eachLayer(function(marker) {

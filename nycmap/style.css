@@ -14,6 +14,7 @@ body {
 	background: rgb(0,68,104);
 	font-family: Raleway, sans-serif;
 	color: white;
+	
 }
 
 #title_box {
@@ -21,6 +22,12 @@ body {
 	padding-left: 20px;
 	padding-right: 20px;
 	padding-bottom: 20px;
+}
+
+#grouplist {
+	height:300px;
+	overflow: scroll;
+
 }
 
 .search-ui {
