@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset=utf-8 />
-	<title>NYC Facilities Map</title>
+	<title>City Planning Facilities Map</title>
 	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 	<script src='https://api.mapbox.com/mapbox.js/v2.2.3/mapbox.js'></script>
 	<link type="text/css" href="colorbrewer.css" rel="stylesheet">
@@ -15,8 +15,8 @@
 	<link rel="stylesheet" href= "style.css" />
 	<link rel="stylesheet" href= "cssmenu/styles.css" />
 	<style>
-	  body { margin:0; padding:0; }
-	  #map { position:absolute; top:0; bottom:0; width:100%; }
+	  
+	  #map { position:absolute; top:0; bottom:0; width:100%;height: 100%; }
 	</style>
 </head>
 <body>
@@ -30,11 +30,15 @@
 
 	<div id='map'></div>
 
-	<div id='controls'>
-		<input id='search' class='search-ui' placeholder='Enter Facility Name' />
+	<div id='control_container'>
+		<div id='title_box'>
+			<h1 id='control_title'> City Planning Facilities Database</h1>
+			<h5><a>About the Data </a></h2>
+			<input id='search' class='search-ui' placeholder='Search' />
+		</div>
 		<div id='cssmenu'>
 			<ul id='grouplist'>
-			   <li class='active' ><a class='group' href='#' data-filter='all'>Show All</a></li>
+			   <li class='active' ><a class='group' id='all' href='#' data-filter='all'>Show All</a></li>
 			   
 			</ul>
 		</div>
@@ -68,14 +72,13 @@
 
 		$('#search').keyup(search);
 
-		var colorScale = d3.scale.ordinal()
-	        .domain([1, 6])
-	        .range(["#AD8607", "#3B4BAD","#3F78B8", "#3F8EA1", "#3FB8A4", "#35AD6F"]);
+		var colorScale = [null,"#AD8607", "#3B4BAD","#3F78B8", "#3F8EA1", "#3FB8A4", "#35AD6F"];
 
 		var feat_layer_options = {
 			pointToLayer: function (feature, latlng) {
 				//console.log(feature);
-				var fill_col = colorScale(feature.properties.NewGroupType);
+				var fill_col = colorScale[feature.properties.NewGroupType];
+				console.log(feature.properties.NewGroupType);
 				return L.circleMarker(latlng, {
 					stroke: false,
 					fillColor: fill_col,
@@ -129,9 +132,10 @@
 
 		function addFilters() {
 			//agency_over.forEach(function(a) {
+			var i = 1;
 			for(group in categories) {
 
-				var h = "<li class='has-sub'><a class='group' href='#' data-filter='" + group + "'>"+ group + "</a> <ul>";
+				var h = "<li class='has-sub'><a class='group' id='g" + i + "' href='#' data-filter='" + group + "'>"+ group + "</a> <ul>";
 
 				for (subgroup in categories[group]) {
 					console.log(subgroup);
@@ -140,6 +144,7 @@
 
 				h += "</ul></li>";
 				$('#grouplist').append(h);
+				i++;
 			};
 		      
 		    //  currFilters.agency_over.push(a);
