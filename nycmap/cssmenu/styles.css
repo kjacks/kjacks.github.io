@@ -34,7 +34,7 @@
   float: right;
 }
 #cssmenu > ul > li > a {
-  padding: 16px 22px;
+  padding: 16px 35px 16px 20px;
   cursor: pointer;
   z-index: 2;
   font-size: 12px;
@@ -109,7 +109,7 @@
 #cssmenu ul ul > li.has-sub > a:after {
   top: 16px;
   right: 26px;
-  background: green;
+  background: #dddddd;
 }
 #cssmenu ul ul > li.has-sub > a:before {
   top: 20px;
