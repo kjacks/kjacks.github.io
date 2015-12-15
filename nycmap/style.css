@@ -14,7 +14,6 @@ body {
 	background: rgb(0,68,104);
 	font-family: Raleway, sans-serif;
 	color: white;
-	
 }
 
 #title_box {
@@ -26,17 +25,16 @@ body {
 
 .search-ui {
 		  position:relative;
-		  
 		  width: 195px;
 		  z-index:1000;
 		}
 
-#all {
-  background: rgb(0,68,104);
+#all:hover {
+  background: #006DA8;
 }
 
-#g1:hover, .open > #g1  {
-   background: #DB691B;
+#g1:hover, .open > #g1 {
+   background: #031D44;
 }
 
 #g2:hover, .open > #g2{
@@ -52,13 +50,28 @@ body {
 }
 
 #g5:hover, .open > #g5 {
-	background: #004468
+	background: #227159
 }
 
 #g6:hover, .open > #g6 {
-	background: #7CAEF0
+	background: #708471
 }
 
+#about_toggle {
+    position:relative;
+    cursor: pointer;
+}
+
+.popup {
+	padding: 20px;
+    position:absolute;
+    left:215px;
+    top: -150px;
+    width: 500px;
+    background:#ccc;
+    display:none;
+    border-radius: 5px;
+}
 
 #map {
 	width:100%;
