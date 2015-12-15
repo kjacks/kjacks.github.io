@@ -25,7 +25,7 @@ body {
 }
 
 #grouplist {
-	height:300px;
+	height:330px;
 	overflow: scroll;
 
 }
@@ -40,33 +40,42 @@ body {
   background: #006DA8;
 }
 
-#g1:hover, .open > #g1 {
+#g1:hover, #g1 > .tab, .open > #g1 {
    background: #031D44;
 }
 
-#g2:hover, .open > #g2{
+#g2:hover, #g2 > .tab, .open > #g2{
   background: #78BC41;
 }
 
-#g3:hover, .open > #g3{
+#g3:hover, #g3 > .tab, .open > #g3{
   background: #7CAEF0
 }
 
-#g4:hover, .open > #g4 {
+#g4:hover, #g4 > .tab, .open > #g4 {
 	background: #69DDFF
 }
 
-#g5:hover, .open > #g5 {
+#g5:hover, #g5 > .tab, .open > #g5 {
 	background: #227159
 }
 
-#g6:hover, .open > #g6 {
+#g6:hover, #g6 > .tab, .open > #g6 {
 	background: #708471
 }
 
 #about_toggle {
     position:relative;
     cursor: pointer;
+}
+
+.tab {
+	position: absolute;
+	top:0px;
+	left:0px;
+	width:10px;
+	height:100%;
+	z-index: 3;
 }
 
 .popup {

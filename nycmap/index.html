@@ -48,7 +48,8 @@
 		</div>
 		<div id='cssmenu'>
 			<ul id='grouplist'>
-			   <li class='active' ><a class='group' id='all' href='#' data-filter='all'>Show All</a></li>
+			   <li class='active' ><a class='group' id='all' href='#' data-filter='all'>Show All</a>
+			   </li>
 			   
 			</ul>
 		</div>
@@ -158,7 +159,7 @@
 			var i = 1;
 			for(group in categories) {
 
-				var h = "<li class='has-sub'><a class='group' id='g" + i + "' href='#' data-filter='" + group + "'>"+ group + "</a> <ul>";
+				var h = "<li class='has-sub'><a class='group' id='g" + i + "' href='#' data-filter='" + group + "'>"+ group + " <div class='tab'></div></a><ul>";
 
 				for (subgroup in categories[group]) {
 					
