@@ -56,14 +56,19 @@
 	</div>
 
 	<script>
-		$("#about_toggle").on("mouseover", function(e){
+		var curr_filter = {};
+		var curr_search = '';
+		$("#about_toggle").on("click", function(e){
+			console.log('showing popup');
 		    e.preventDefault();
-		    $(this).find(".popup").fadeIn("slow");
+		    $(this).find(".popup").fadeIn("fast");
 		});
 
-		$("#about_toggle").on("mouseout", function(e){
-			e.preventDefault();
-			$(this).find(".popup").fadeOut("slow");
+		$('body').click(function(e) {
+			console.log('hiding popup');
+		    if (!$(e.target).closest('#about_toggle').length){
+		        $(".popup").hide();
+		    }
 		});
 
 		var categories = {
@@ -105,7 +110,7 @@
 			}
 		}
 
-		var csvLayer = omnivore.csv('sfpsd.csv', null, L.mapbox.featureLayer(null, feat_layer_options))
+		var csvLayer = omnivore.csv('SFPSD_small.csv', null, L.mapbox.featureLayer(null, feat_layer_options))
 			.on('ready', function(layer) {
 				var i = 0;
 				this.eachLayer(function(marker) {
@@ -120,34 +125,9 @@
 				});
 				console.log(i);
 				addFilters();
-			/*
-	        // An example of customizing marker styles based on an attribute.
-	        // In this case, the data, a CSV file, has a column called 'state'
-	        // with values referring to states. Your data might have different
-	        // values, so adjust to fit.
-		        this.eachLayer(function(marker) {
-		        	/console.log(marker);
-		            if (marker.toGeoJSON().properties.FacName === 'CA') {
-		                // The argument to L.mapbox.marker.icon is based on the
-		                // simplestyle-spec: see that specification for a full
-		                // description of options.
-		                marker.setIcon(L.mapbox.marker.icon({
-		                    'marker-color': '#ff8888',
-		                    'marker-size': 'large'
-		                }));
-		            } else {
-		            	
-		                marker.setIcon(circleIcon);
-
-		            //}
-		    		
-		            // Bind a popup to each icon based on the same properties
-		            marker.bindPopup(marker.toGeoJSON().properties.FacName + ', ' +
-		                marker.toGeoJSON().properties.Borough);
-		            
-		        });*/
 	    	})
 			.on('error', function(e) {
+				alert(e.error[0].message);
 		        // fired if the layer can't be loaded over AJAX
 		        // or can't be parsed
 		        console.log(e);
@@ -169,12 +149,7 @@
 				h += "</ul></li>";
 				$('#grouplist').append(h);
 				i++;
-			};
-		      
-		    //  currFilters.agency_over.push(a);
-		    //}); 
-
-			
+			};		
 
 			for (var i = 0; i < categories.length; i++) {
 				console.log(categories[i]);
@@ -185,9 +160,10 @@
 
 		function search() {
 		    // get the value of the search input field
-		    var searchString = $('#search').val().toLowerCase();
-
-		   	csvLayer.setFilter(showState);
+		    curr_search = $('#search').val().toLowerCase();
+		    console.log(curr_filter);
+		    
+		   	csvLayer.setFilter(toDisplay);
 
 		   	/*csvLayer.eachLayer(function(marker) {
 		   			console.log(marker);
@@ -196,15 +172,32 @@
 		       */
 
 		   	console.log(csvLayer);
-		    // here we're simply comparing the 'state' property of each marker
-		    // to the search string, seeing whether the former contains the latter.
-		    function showState(feature) {
-		    	//console.log(feature);
-		        return feature.properties.FacName
+		    
+		}
+
+		function toDisplay(feature) {
+	    	var displayed = (curr_filter.filter === 'all') ? true : getField(curr_filter.level, feature) === curr_filter.filter;
+	        
+	        if (displayed) {
+	        	return feature.properties.FacName
 		            .toLowerCase()
-		            .indexOf(searchString) !== -1;
+		            .indexOf(curr_search) !== -1;
+		    } else {
+		    	return false;
 		    }
 		}
+
+		function getField(level, fac) {
+		switch(level) {
+			case "group":
+				return fac.properties.NewGroupType_Decode;
+				break;
+			case "subgroup":
+				return fac.properties.NewSgroup_Decode;
+				break;
+		}
+}
+
 
 		
 	</script>

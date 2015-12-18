@@ -21,32 +21,31 @@ function addFilterInteraction(){
 		});
 
 	$('a').on('click', function() {
-		var level = this.classList[0];
-		
+		curr_filter.level = this.classList[0];
+		console.log(curr_filter.level);
+		if (curr_filter.level == "subgroup") {
+			$(this).addClass(".selected");
+			console.log(this);
+			console.log($(this))
+		}
 	    // For each filter link, get the 'data-filter' attribute value.
-	    var filter = $(this).data('filter');
+	    curr_filter.filter = $(this).data('filter');
 	    
-	    csvLayer.setFilter(function(f) {
+	    csvLayer.setFilter(toDisplay);
+	    /*csvLayer.setFilter(function(f) {
 	    	
 	        // If the data-filter attribute is set to "all", return
 	        // all (true). Otherwise, filter on markers that have
 	        // a value set to true based on the filter name.
-	        return (filter === 'all') ? true : getField(level, f) === filter;
+	        return (curr_filter.filter === 'all') ? true : getField(curr_filter.level, f) === curr_filter.filter;
 	    });
+*/
 	    return false;
 	});
 
-	function getField(level, fac) {
-		switch(level) {
-			case "group":
-				return fac.properties.NewGroupType_Decode;
-				break;
-			case "subgroup":
-				return fac.properties.NewSgroup_Decode;
-				break;
-		}
-	}
+	
 }
+
 
 
 
