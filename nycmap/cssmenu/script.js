@@ -2,13 +2,16 @@
 function addFilterInteraction(){
 	console.log("here");
 	$('#cssmenu li.active').addClass('open').children('ul').show();
-		$('#cssmenu li.has-sub>a').on('click', function(){
+		$('#cssmenu li.has-sub>a, #all').on('click', function(){
 			$(this).removeAttr('href');
 			var element = $(this).parent('li');
 			if (element.hasClass('open')) {
 				element.removeClass('open');
 				element.find('li').removeClass('open');
 				element.find('ul').slideUp(200);
+				$('#all').addClass('active');
+				curr_filter.filter = 'all';
+				csvLayer.setFilter(toDisplay);
 			}
 			else {
 				element.addClass('open');
@@ -17,33 +20,36 @@ function addFilterInteraction(){
 				element.siblings('li').removeClass('open');
 				element.siblings('li').find('li').removeClass('open');
 				element.siblings('li').find('ul').slideUp(200);
+				$('#all').removeClass('active');
+				curr_filter.level = this.classList[0];
+				curr_filter.filter = $(this).data('filter');
+	   			csvLayer.setFilter(toDisplay);
 			}
 		});
 
-	$('a').on('click', function() {
+		$('#all').on('click', function() {
+			if ($(this).hasClass('active') && curr_filter.filter != 'all') {
+				$('#all').removeClass('active');
+			} else {
+				$('#all').addClass('active');
+			}
+		})
+
+	//function for submenu items
+	$('ul>li>ul>li>a').on('click', function() {
+		console.log("in sub");
 		curr_filter.level = this.classList[0];
-		console.log(curr_filter.level);
-		if (curr_filter.level == "subgroup") {
-			$(this).addClass(".selected");
-			console.log(this);
-			console.log($(this))
-		}
+		$('.selected').removeClass("selected");
+		$(this).addClass("selected");
+		
 	    // For each filter link, get the 'data-filter' attribute value.
 	    curr_filter.filter = $(this).data('filter');
 	    
 	    csvLayer.setFilter(toDisplay);
-	    /*csvLayer.setFilter(function(f) {
-	    	
-	        // If the data-filter attribute is set to "all", return
-	        // all (true). Otherwise, filter on markers that have
-	        // a value set to true based on the filter name.
-	        return (curr_filter.filter === 'all') ? true : getField(curr_filter.level, f) === curr_filter.filter;
-	    });
-*/
+	    
 	    return false;
 	});
 
-	
 }
 
 

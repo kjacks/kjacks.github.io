@@ -27,7 +27,6 @@ body {
 #grouplist {
 	height:400px;
 	overflow: scroll;
-
 }
 
 .search-ui {
@@ -36,7 +35,7 @@ body {
 		  z-index:1000;
 		}
 
-#all:hover {
+#all.active, #all:hover {
   background: #006DA8;
 }
 
