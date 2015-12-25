@@ -15,10 +15,7 @@
 	  #map { position:absolute; top:0; bottom:0; width:100%;height: 100%; }
 	</style>
 	<script>
-		$(window).load(function() {
-				// Animate loader off screen
-				$(".se-pre-con").fadeOut("slow");;
-		});
+		
 	</script>
 </head>
 <body>
@@ -153,6 +150,7 @@
 				$('#grouplist').append(h);
 				i++;
 			};
+			$(".se-pre-con").fadeOut("slow");
 			//calls cssmenu function to add interaction
 			addFilterInteraction();
 		}
