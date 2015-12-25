@@ -16,7 +16,6 @@
 	</style>
 </head>
 <body>
-	<div class="se-pre-con"></div>
 	<div id='map'></div>
 
 	<div id='control_container'>
@@ -108,7 +107,6 @@
 
 		var csvLayer = omnivore.csv(data_source, null, L.mapbox.featureLayer(null, feat_layer_options))
 			.on('ready', function(layer) {
-				$(".se-pre-con").fadeOut("slow");
 				this.eachLayer(function(marker) {
 					var group = marker.feature.properties.NewGroupType_Decode;
 					var subgroup = marker.feature.properties.NewSgroup_Decode;
