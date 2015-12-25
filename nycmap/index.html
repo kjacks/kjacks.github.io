@@ -14,8 +14,15 @@
 	<style>
 	  #map { position:absolute; top:0; bottom:0; width:100%;height: 100%; }
 	</style>
+	<script>
+		$(window).load(function() {
+				// Animate loader off screen
+				$(".se-pre-con").fadeOut("slow");;
+		});
+	</script>
 </head>
 <body>
+	<div class="se-pre-con"></div>
 	<div id='map'></div>
 
 	<div id='control_container'>
@@ -49,9 +56,14 @@
 		var curr_filter = {};
 		var curr_search = '';
 
-		var categories = {
-			
-		};
+		// variable to store groups and subgroup heirarchy
+		var categories = {};
+
+		// specify data source here (must be .csv)
+		var data_source = 'SFPSD_small.csv';
+
+		var colorScale = [null,"#031D44", "#78BC41","#7CAEF0", "#69DDFF", "#227159", "#708471"];
+		
 
 		// shows "About Data" popup
 		$("#about_toggle").on("click", function(e){
@@ -66,11 +78,12 @@
 		    }
 		});
 
+		// calls search function when clicked
 		$('#search').keyup(search);
 
-		
-
 		L.mapbox.accessToken = 'pk.eyJ1Ijoia2phY2tzIiwiYSI6ImNpaGNqZzg3MzA3b3p1ZW1henJmdHFwcXcifQ.8VPtPnB9QdLxxAU2mXDpfw';
+
+	// Map Initialization 
 
 		var map = L.map('map', {
 		    scrollWheelZoom: true,
@@ -81,42 +94,39 @@
 
 		new L.Control.Zoom({ position: 'topright' }).addTo(map);
 
+		// adds basemap layer to map
 		var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
 		  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
 		}).addTo(map);
 
-		
-
-		var colorScale = [null,"#031D44", "#78BC41","#7CAEF0", "#69DDFF", "#227159", "#708471"];
-
+		// customizes markers to be circles
 		var feat_layer_options = {
 			pointToLayer: function (feature, latlng) {
 				return L.circleMarker(latlng, {
 					stroke: false,
 					fillColor: colorScale[feature.properties.NewGroupType],
 					fillOpacity: .6, 
-					
 				}).setRadius(3.5).bindPopup(feature.properties.FacName);
 			}
 		}
 
-		var csvLayer = omnivore.csv('SFPSD_small.csv', null, L.mapbox.featureLayer(null, feat_layer_options))
+	// Processing Data
+
+		var csvLayer = omnivore.csv(data_source, null, L.mapbox.featureLayer(null, feat_layer_options))
 			.on('ready', function(layer) {
-				var i = 0;
 				this.eachLayer(function(marker) {
-					i++;
 					var group = marker.feature.properties.NewGroupType_Decode;
 					var subgroup = marker.feature.properties.NewSgroup_Decode;
 
 					group.toString();
 					subgroup.toString();
 
+					//if group has not been seen yet, creates new object
 					if (!categories.hasOwnProperty(group)) {
 						categories[group] = {};
 					}
 					categories[group][subgroup] = {}; 
 				});
-				console.log(i);
 				addFilters();
 	    	})
 			.on('error', function(e) {
@@ -127,27 +137,23 @@
 		    })
 		    .addTo(map);
 
+	// Filtering and Search
+
+		// populates filter menu
 		function addFilters() {
-			//agency_over.forEach(function(a) {
 			var i = 1;
 			for(group in categories) {
-
 				var h = "<li class='has-sub'><a class='group' id='g" + i + "' href='#' data-filter='" + group + "'>"+ group + " <div class='tab'></div></a><ul>";
 
 				for (subgroup in categories[group]) {
-					
 					h += "<li><a class='subgroup' href='#' data-filter='" + subgroup + "'>"+ subgroup + "</a></li>";
 				}
 
 				h += "</ul></li>";
 				$('#grouplist').append(h);
 				i++;
-			};		
-
-			for (var i = 0; i < categories.length; i++) {
-				console.log(categories[i]);
-			}
-
+			};
+			//calls cssmenu function to add interaction
 			addFilterInteraction();
 		}
 
@@ -158,9 +164,12 @@
 		   	csvLayer.setFilter(toDisplay);   
 		}
 
+		// determines whether to display a given facility based on current filters and search terms
 		function toDisplay(feature) {
+			// checks with current filters
 	    	var displayed = (curr_filter.filter === 'all') ? true : getField(curr_filter.level, feature) === curr_filter.filter;
 	        
+	        // checks with current search term
 	        if (displayed) {
 	        	return feature.properties.FacName
 		            .toLowerCase()
@@ -170,20 +179,17 @@
 		    }
 		}
 
+		// utility function to get correct field from facility
 		function getField(level, fac) {
-		switch(level) {
-			case "group":
-				return fac.properties.NewGroupType_Decode;
-				break;
-			case "subgroup":
-				return fac.properties.NewSgroup_Decode;
-				break;
+			switch(level) {
+				case "group":
+					return fac.properties.NewGroupType_Decode;
+					break;
+				case "subgroup":
+					return fac.properties.NewSgroup_Decode;
+					break;
+			}
 		}
-}
-
-
-		
-	</script>
-	
+	</script>	
 </body>
 </html>

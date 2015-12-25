@@ -1,8 +1,7 @@
-
 function addFilterInteraction(){
-	console.log("here");
 	$('#cssmenu li.active').addClass('open').children('ul').show();
 		$('#cssmenu li.has-sub>a, #all').on('click', function(){
+			
 			$(this).removeAttr('href');
 			var element = $(this).parent('li');
 			if (element.hasClass('open')) {
@@ -37,7 +36,6 @@ function addFilterInteraction(){
 
 	//function for submenu items
 	$('ul>li>ul>li>a').on('click', function() {
-		console.log("in sub");
 		curr_filter.level = this.classList[0];
 		$('.selected').removeClass("selected");
 		$(this).addClass("selected");
