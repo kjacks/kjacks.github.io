@@ -14,9 +14,6 @@
 	<style>
 	  #map { position:absolute; top:0; bottom:0; width:100%;height: 100%; }
 	</style>
-	<script>
-		
-	</script>
 </head>
 <body>
 	<div class="se-pre-con"></div>
@@ -111,6 +108,7 @@
 
 		var csvLayer = omnivore.csv(data_source, null, L.mapbox.featureLayer(null, feat_layer_options))
 			.on('ready', function(layer) {
+				$(".se-pre-con").fadeOut("slow");
 				this.eachLayer(function(marker) {
 					var group = marker.feature.properties.NewGroupType_Decode;
 					var subgroup = marker.feature.properties.NewSgroup_Decode;
@@ -150,7 +148,7 @@
 				$('#grouplist').append(h);
 				i++;
 			};
-			$(".se-pre-con").fadeOut("slow");
+			
 			//calls cssmenu function to add interaction
 			addFilterInteraction();
 		}
