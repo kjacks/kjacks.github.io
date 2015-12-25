@@ -5,29 +5,17 @@
 	<title>City Planning Facilities Map</title>
 	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 	<script src='https://api.mapbox.com/mapbox.js/v2.2.3/mapbox.js'></script>
-	<link type="text/css" href="colorbrewer.css" rel="stylesheet">
-	<script type="text/javascript" src="d3/d3.min.js"></script>
-	<script type="text/javascript" src="colorbrewer.js"></script>
 	<script type="text/javascript" src="jquery/jquery-2.1.4.min.js"></script>
 	<script type="text/javascript" src="cssmenu/script.js"></script>
-	
 	<link href='https://api.mapbox.com/mapbox.js/v2.2.3/mapbox.css' rel='stylesheet' />
+	<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.2.0/leaflet-omnivore.min.js'></script>
 	<link rel="stylesheet" href= "style.css" />
 	<link rel="stylesheet" href= "cssmenu/styles.css" />
 	<style>
-	  
 	  #map { position:absolute; top:0; bottom:0; width:100%;height: 100%; }
 	</style>
 </head>
 <body>
-	<style>
-
-	</style>
-
-	<!-- jQuery is required for this example. -->
-	<script src='https://code.jquery.com/jquery-1.11.0.min.js'></script>
-	<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.2.0/leaflet-omnivore.min.js'></script>
-
 	<div id='map'></div>
 
 	<div id='control_container'>
@@ -41,8 +29,9 @@
 					In addition to this interactive map, the City Planning Facilities Database is available for download in multiple formats from Bytes of the Big Apple.  Sign up to be notified of updates here, and please let us know how you use the data by emailing the Capital Planning division at City Planning at capital@planning.nyc.gov.<br><br>
 					LIMITATIONS <br>
 					The Department of City Planning cannot guarantee that the Facilities Database is comprehensive or includes the latest information about any of the facilities encompassed in the database.  The Facilities Database is limited by the reliability of each contributing agency’s data and the Department of City Planning’s quarterly update schedule.  The Department of City Planning strongly encourages users to read the metadata.  This database is a product that is consistently evolving, and the Department of City Planning actively works to improve its quality and usability.  Any specific ideas for improvement or questions about the data should be directed to capital@planning.nyc.gov.
-				</div>
-			    
+					<br><br>
+					Map Created by Kirk Jackson, 2015 - kirkgjackson@gmail.com 
+				</div>  
 			</a></h5>
 			<input id='search' class='search-ui' placeholder='Search' />
 		</div>
@@ -56,29 +45,30 @@
 	</div>
 
 	<script>
+		// variables to store current filters or search terms to determine which facilities to display
 		var curr_filter = {};
 		var curr_search = '';
+
+		var categories = {
+			
+		};
+
+		// shows "About Data" popup
 		$("#about_toggle").on("click", function(e){
-			console.log('showing popup');
 		    e.preventDefault();
 		    $(this).find(".popup").fadeIn("fast");
 		});
 
+		// hides "About Data" popup
 		$('body').click(function(e) {
-			console.log('hiding popup');
 		    if (!$(e.target).closest('#about_toggle').length){
 		        $(".popup").hide();
 		    }
 		});
 
-		var categories = {
-			"Educational Facilities": {},
-			"Community & Recreational Facilities": {},
-			"Public Safety & Justice Facilities": {},
-			"Hospitals & Health Service Facilities": {},
-			"Housing & Social Service Facilities": {},
-			"Transportation & Waste Facilities": {}
-		};
+		$('#search').keyup(search);
+
+		
 
 		L.mapbox.accessToken = 'pk.eyJ1Ijoia2phY2tzIiwiYSI6ImNpaGNqZzg3MzA3b3p1ZW1henJmdHFwcXcifQ.8VPtPnB9QdLxxAU2mXDpfw';
 
@@ -89,13 +79,13 @@
 		    zoom: 11
 		});
 
-		//new L.Control.Zoom({ position: 'topright' }).addTo(map);
+		new L.Control.Zoom({ position: 'topright' }).addTo(map);
 
 		var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
 		  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
 		}).addTo(map);
 
-		$('#search').keyup(search);
+		
 
 		var colorScale = [null,"#031D44", "#78BC41","#7CAEF0", "#69DDFF", "#227159", "#708471"];
 
@@ -121,6 +111,9 @@
 					group.toString();
 					subgroup.toString();
 
+					if (!categories.hasOwnProperty(group)) {
+						categories[group] = {};
+					}
 					categories[group][subgroup] = {}; 
 				});
 				console.log(i);
@@ -161,18 +154,8 @@
 		function search() {
 		    // get the value of the search input field
 		    curr_search = $('#search').val().toLowerCase();
-		    console.log(curr_filter);
 		    
-		   	csvLayer.setFilter(toDisplay);
-
-		   	/*csvLayer.eachLayer(function(marker) {
-		   			console.log(marker);
-		            marker.openPopup();
-		        });
-		       */
-
-		   	console.log(csvLayer);
-		    
+		   	csvLayer.setFilter(toDisplay);   
 		}
 
 		function toDisplay(feature) {

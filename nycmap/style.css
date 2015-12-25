@@ -1,7 +1,12 @@
 @import url(http://fonts.googleapis.com/css?family=Raleway:400,200);
 
 body {
-	width: 100%;
+	width:100%;
+	height:100%;
+}
+
+#map {
+	width:100%;
 	height:100%;
 }
 
@@ -14,7 +19,6 @@ body {
 	background: rgb(0,68,104);
 	font-family: Raleway, sans-serif;
 	color: white;
-	
 }
 
 #title_box {
@@ -30,10 +34,10 @@ body {
 }
 
 .search-ui {
-		  position:relative;
-		  width: 195px;
-		  z-index:1000;
-		}
+  position:relative;
+  width: 195px;
+  z-index:1000;
+}
 
 #all.active, #all:hover {
   background: #006DA8;
@@ -88,7 +92,3 @@ body {
     border-radius: 5px;
 }
 
-#map {
-	width:100%;
-	height:100%;
-}
